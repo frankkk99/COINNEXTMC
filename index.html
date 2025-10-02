@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COINNEXT - ค้นหาเพื่อนเที่ยวคนพิเศษของคุณ (Invite Only)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    
+    <!-- AOS (Animate on Scroll) -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script>
+    
+    <!-- LazySizes for Lazy Loading Images -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js" async></script>
+
+    <style>
+        :root {
+            --primary-color: #F000B8; /* Neon Pink */
+            --secondary-color: #00F0FF; /* Electric Blue */
+            --primary-glow: rgba(240, 0, 184, 0.5);
+            --secondary-glow: rgba(0, 240, 255, 0.4);
+            --bg-dark: #05020a;
+            --bg-medium: #100a1f;
+            --bg-light: #1a112f;
+            --border-color: #3d2c5c;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #E5E7EB;
+            overflow-x: hidden;
+        }
+        
+        body.modal-open { overflow: hidden; }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: linear-gradient(-45deg, #05020a, #100a1f, #05020a, #1a112f);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Inter', 'Sarabun', sans-serif;
+            font-weight: 700;
+        }
+
+        .highlight-text { color: var(--primary-color); }
+        .highlight-text-secondary { color: var(--secondary-color); }
+
+        .glass-card, .glass-modal {
+            background-color: rgba(26, 17, 47, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(61, 44, 92, 0.5);
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-image: none;
+            background-color: #374151;
+        }
+        .btn-primary {
+            background-image: linear-gradient(45deg, var(--primary-color) 0%, #ff33c8 50%, #d4009b 100%);
+            background-size: 200% auto;
+            color: #ffffff;
+            box-shadow: 0 4px 20px var(--primary-glow);
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-position: right center;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+        .btn-outline {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .tilt-card {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            will-change: transform;
+            transform-style: preserve-3d;
+        }
+        .tilt-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3), 0 0 20px var(--primary-glow);
+            transform: perspective(1000px) rotateX(2deg) rotateY(4deg) scale3d(1.05, 1.05, 1.05);
+        }
+
+        .custom-select {
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            background-color: var(--bg-light); border: 1px solid var(--border-color); color: #E5E7EB;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23F000B8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+
+        /* Modal Styles */
+        .modal-container { transition: opacity 0.3s ease; }
+        .modal-content {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform: scale(0.95);
+            opacity: 0;
+        }
+        .modal-container.is-open .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .dropdown-modal {
+            transform-origin: top right;
+        }
+
+        /* Favorites & Notifications Styles */
+        .favorite-btn i { transition: transform 0.2s ease-out; }
+        .favorite-btn.favorited i {
+            fill: #ff4757; color: #ff4757;
+            animation: heart-pop 0.3s ease-out;
+        }
+        @keyframes heart-pop { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+        
+        #favorites-counter, #notifications-counter, #chat-counter {
+            display: flex; align-items: center; justify-content: center; line-height: 1;
+        }
+        #favorites-counter.hidden, #notifications-counter.hidden, #chat-counter.hidden { display: none; }
+
+        .notification-item { cursor: pointer; }
+        .notification-item.unread { background-color: rgba(240, 0, 184, 0.1); }
+        .notification-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+        
+        /* Lazy Loading Styles */
+        .lazyload, .lazyloading {
+            opacity: 0;
+        }
+        .lazyloaded {
+            opacity: 1;
+            transition: opacity 300ms;
+        }
+
+        /* Chat & Offer Styles */
+        #chat-modal { transition: all 0.3s ease-in-out; transform-origin: bottom right; }
+        #chat-modal.is-open { opacity: 1; transform: scale(1); pointer-events: auto; }
+        #chat-modal.is-closed { opacity: 0; transform: scale(0.9); pointer-events: none; }
+        .chat-message { max-width: 80%; padding: 0.5rem 1rem; border-radius: 1.25rem; }
+        .chat-message.sent { background-color: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 0.25rem; }
+        .chat-message.received { background-color: var(--bg-light); color: #E5E7EB; align-self: flex-start; border-bottom-left-radius: 0.25rem; }
+        .offer-card { background-color: var(--bg-light); border: 1px solid var(--border-color); border-left-width: 4px; border-left-color: var(--secondary-color); }
+        
+        /* Star Rating */
+        .star-rating { display: inline-flex; flex-direction: row-reverse; }
+        .star-rating input { display: none; }
+        .star-rating label { font-size: 2.5rem; color: #4B5563; cursor: pointer; transition: color 0.2s; padding: 0 0.25rem;}
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label { color: #FBBF24; }
+        
+        /* Payment Modal Tabs */
+        .payment-tab { border-bottom: 3px solid transparent; }
+        .payment-tab.active { border-bottom-color: var(--primary-color); color: var(--primary-color); }
+        .payment-tab-content { display: none; }
+        .payment-tab-content.active { display: block; }
+
+        /* For Hiding the Scrollbar */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .slider-wrapper { cursor: grab; user-select: none; }
+        .slider-wrapper.active { cursor: grabbing; }
+
+        /* Preloader Styles */
+        #preloader { background-color: var(--bg-dark); position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #preloader.start-exit { transition: opacity 0.6s 1.8s, visibility 0.6s 1.8s; opacity: 0; visibility: hidden; }
+        #preloader-gate-top, #preloader-gate-bottom { background-color: #0c121c; position: absolute; left: 0; width: 100%; height: 50%; }
+        #preloader-gate-top { top: 0; }
+        #preloader-gate-bottom { bottom: 0; }
+        #preloader.start-exit #preloader-gate-top { animation: gate-open-top 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards; }
+        #preloader.start-exit #preloader-gate-bottom { animation: gate-open-bottom 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards; }
+        @keyframes gate-open-top { to { transform: translateY(-100%); } }
+        @keyframes gate-open-bottom { to { transform: translateY(100%); } }
+        
+        #preloader .logo-char { display: inline-block; opacity: 0; transform: translateY(-100px); animation: char-reveal 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        #preloader .logo-char:nth-child(1) { animation-delay: 0.1s; }
+        #preloader .logo-char:nth-child(2) { animation-delay: 0.2s; }
+        #preloader .logo-char:nth-child(3) { animation-delay: 0.3s; }
+        #preloader .logo-char:nth-child(4) { animation-delay: 0.4s; }
+        #preloader .highlight-text .logo-char:nth-child(1) { animation-delay: 0.5s; }
+        #preloader .highlight-text .logo-char:nth-child(2) { animation-delay: 0.6s; }
+        #preloader .highlight-text .logo-char:nth-child(3) { animation-delay: 0.7s; }
+        #preloader .highlight-text .logo-char:nth-child(4) { animation-delay: 0.8s; }
+
+        @keyframes char-reveal { to { opacity: 1; transform: translateY(0); } }
+        
+        #preloader .highlight-text { animation: text-glow 2s infinite alternate; animation-delay: 1s; }
+        @keyframes text-glow {
+            from { text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow); }
+            to { text-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow); }
+        }
+
+        /* Timeline for "How it Works" */
+        .timeline-item { position: relative; padding-left: 2.5rem; padding-bottom: 2rem; border-left: 2px solid var(--border-color); }
+        .timeline-item:last-child { border-left: 2px solid transparent; padding-bottom: 0; }
+        .timeline-dot { position: absolute; left: -0.7rem; top: 0; width: 1.25rem; height: 1.25rem; border-radius: 9999px; background-color: var(--bg-light); border: 3px solid var(--primary-color); display: flex; align-items: center; justify-content: center; }
+        .timeline-dot-inner { width: 0.5rem; height: 0.5rem; background-color: var(--primary-color); border-radius: 9999px; }
+
+        /* Admin Panel Styles */
+        #admin-panel { transition: transform 0.3s ease-in-out; }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="preloader"><div id="preloader-gate-top"></div><div id="preloader-gate-bottom"></div><div class="relative text-5xl md:text-7xl font-bold text-white tracking-widest uppercase"><span class="logo-char">C</span><span class="logo-char">O</span><span class="logo-char">I</span><span class="logo-char">N</span><span class="highlight-text"><span class="logo-char">N</span><span class="logo-char">E</span><span class="logo-char">X</span><span class="logo-char">T</span></span></div></div>
+    <header class="sticky top-0 z-50 glass-card"><div class="container mx-auto px-6 py-4"><div class="flex items-center justify-between"><a href="#" class="text-2xl font-bold text-white tracking-widest uppercase">COIN<span class="highlight-text">NEXT</span></a><div id="main-nav" class="hidden md:flex items-center space-x-6 text-sm"><a href="#how-it-works" class="text-gray-300 hover:text-white transition">เริ่มต้นอย่างไร</a><a href="#verified-mc" class="text-gray-300 hover:text-white transition">โปรไฟล์ VIP</a><a href="#partner-venues" class="text-gray-300 hover:text-white transition">สถานที่แนะนำ</a></div><div id="auth-section-header" class="flex items-center gap-2"><button id="invite-code-btn" class="px-4 py-2 rounded-md text-sm font-medium btn btn-primary">ใช้รหัสเชิญ</button><div class="md:hidden"><button class="text-white p-2"><i data-lucide="menu" class="w-6 h-6"></i></button></div></div><div id="user-section-header" class="hidden items-center gap-2"><button id="favorites-btn" class="text-gray-300 hover:text-white transition-colors p-2 rounded-full hover:bg-gray-700 relative"><i data-lucide="heart" class="w-5 h-5"></i><span id="favorites-counter" class="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-red-600 text-white text-xs font-bold ring-2 ring-gray-900 hidden">0</span></button><button id="notifications-btn" class="text-gray-300 hover:text-white transition-colors p-2 rounded-full hover:bg-gray-700 relative"><i data-lucide="bell" class="w-5 h-5"></i><span id="notifications-counter" class="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-red-600 text-white text-xs font-bold ring-2 ring-gray-900 hidden">0</span></button><div class="w-px h-6 bg-gray-700 hidden sm:block mx-2"></div><button id="logout-btn" class="px-4 py-2 rounded-md text-sm font-medium btn btn-outline">ออกจากระบบ</button></div></div></div></header>
+    
+    <div id="landing-page-content">
+        <!-- HERO -->
+        <section id="hero-section" class="relative text-center py-20 md:py-32 px-6 overflow-hidden">
+            <div class="absolute inset-0 bg-cover bg-center opacity-20 lazyload" data-bg="https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=1920"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-bg-dark via-bg-dark/80 to-transparent"></div>
+        
+            <div class="relative z-10 container mx-auto">
+                <div data-aos="fade-down">
+                    <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight uppercase tracking-wider">
+                        นิยามใหม่ของ<span class="highlight-text">ค่ำคืนสุดพิเศษ</span>
+                    </h1>
+                    <p class="text-lg md:text-xl text-gray-300 mb-10 max-w-3xl mx-auto">
+                        เชื่อมต่อคุณกับเพื่อนเที่ยวคนพิเศษที่ผ่านการคัดสรร เพื่อเติมเต็มทุกประสบการณ์ของคุณอย่างเป็นส่วนตัว
+                    </p>
+                </div>
+        
+                <div data-aos="fade-up" data-aos-delay="200">
+                    <button id="hero-invite-code-btn" class="btn btn-primary font-semibold text-lg px-10 py-4 rounded-lg flex items-center justify-center gap-3 mx-auto">
+                        <i data-lucide="key-round" class="w-6 h-6"></i>
+                        กรอกรหัสเชิญเพื่อเริ่มต้น
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Profiles Section -->
+        <section id="featured-profiles" class="py-20">
+             <div class="container mx-auto">
+                <div class="text-center mb-12 px-6" data-aos="fade-up">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white uppercase tracking-wide">โปรไฟล์<span class="highlight-text">แนะนำ</span></h2>
+                    <p class="text-gray-400 max-w-2xl mx-auto mt-4">พบกับเพื่อนเที่ยวคนพิเศษที่ได้รับความนิยมสูงสุดของเรา</p>
+                </div>
+                <div id="featured-mc-slider" class="relative group slider-wrapper" data-aos="fade-up">
+                    <div id="featured-mc-slider-container" class="flex items-stretch overflow-x-auto snap-x snap-mandatory scroll-smooth pb-6 -mb-6 scrollbar-hide pl-6 md:pl-0">
+                        <!-- Featured MC cards will be injected by JS -->
+                    </div>
+                    <button id="featured-mc-slider-prev" class="absolute top-1/2 -translate-y-1/2 left-0 w-12 h-full bg-gradient-to-r from-bg-dark to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 md:flex items-center justify-center hidden">
+                        <i data-lucide="chevron-left" class="w-8 h-8"></i>
+                    </button>
+                    <button id="featured-mc-slider-next" class="absolute top-1/2 -translate-y-1/2 right-0 w-12 h-full bg-gradient-to-l from-bg-dark to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 md:flex items-center justify-center hidden">
+                        <i data-lucide="chevron-right" class="w-8 h-8"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS -->
+        <section id="how-it-works" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 uppercase tracking-wide">4 ขั้นตอนสู่ค่ำคืนที่สมบูรณ์แบบ</h2>
+                    <p class="text-gray-400 max-w-2xl mx-auto mt-4">ง่ายดาย เป็นส่วนตัว และปลอดภัยสำหรับคนสำคัญเช่นคุณ</p>
+                </div>
+                <div class="max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="200">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                        <h3 class="text-xl font-bold text-white mb-2">1. เข้าร่วมคอมมูนิตี้ส่วนตัว</h3>
+                        <p class="text-gray-400">ใช้รหัสเชิญของคุณเพื่อเข้าสู่พื้นที่สำหรับสมาชิกคนพิเศษเท่านั้น ที่ซึ่งความเป็นส่วนตัวของคุณคือสิ่งสำคัญที่สุด</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                        <h3 class="text-xl font-bold text-white mb-2">2. ค้นหาคนที่ใช่สำหรับคุณ</h3>
+                        <p class="text-gray-400">เลือกเพื่อนร่วมทางที่ตรงกับสไตล์และเคมีของคุณ จากโปรไฟล์ที่ผ่านการคัดกรองอย่างดี พร้อมตัวกรองโดยละเอียด</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                        <h3 class="text-xl font-bold text-white mb-2">3. พูดคุยและยืนยันนัดหมาย</h3>
+                        <p class="text-gray-400">สนทนาผ่านระบบแชทส่วนตัวเพื่อทำความรู้จักและตกลงรายละเอียด จากนั้นยืนยันนัดหมายผ่านระบบที่ปลอดภัยของเรา</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                        <h3 class="text-xl font-bold text-white mb-2">4. แบ่งปันประสบการณ์ของคุณ</h3>
+                        <p class="text-gray-400">เมื่อการนัดหมายสิ้นสุดลง คุณสามารถให้คะแนนและรีวิวเพื่อรักษามาตรฐานและคุณภาพของคอมมูนิตี้ของเรา</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VERIFIED MC / VIP Profile -->
+        <section id="verified-mc" class="py-20 bg-gray-900/50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 uppercase tracking-wide">ยกระดับโปรไฟล์สู่ <span class="highlight-text">VIP</span></h2>
+                    <p class="text-gray-400 max-w-3xl mx-auto">สำหรับสมาชิกที่ต้องการความโดดเด่นและการมองเห็นที่เหนือกว่า</p>
+                </div>
+                <div class="max-w-lg mx-auto tilt-card rounded-xl p-8 shadow-lg text-center flex flex-col border-2 border-primary-color relative" data-aos="fade-up" data-aos-delay="200">
+                    <div class="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
+                        <span class="bg-primary-color text-white px-4 py-1 rounded-full text-sm font-semibold uppercase tracking-wider">VIP Package</span>
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="text-2xl font-bold mt-4">VIP Profile</h3>
+                        <div class="my-6">
+                            <p class="text-4xl font-bold highlight-text">299<span class="text-lg font-normal"> บาท/เดือน</span></p>
+                            <p class="text-gray-400">หรือ 2,990 บาท/ปี (ประหยัด 2 เดือน)</p>
+                        </div>
+                        <ul class="text-gray-300 mt-6 text-left space-y-3">
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 text-primary-color mr-2 flex-shrink-0 mt-1"></i> <span>รับเครื่องหมาย <span class="font-bold text-primary-color">VIP Verified</span> บนโปรไฟล์</span></li>
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 text-primary-color mr-2 flex-shrink-0 mt-1"></i> <span>เพิ่มการมองเห็นเป็นพิเศษในการค้นหา</span></li>
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 text-primary-color mr-2 flex-shrink-0 mt-1"></i> <span>เข้าถึงสถิติการเข้าชมโปรไฟล์ของคุณ</span></li>
+                        </ul>
+                    </div>
+                    <button class="mt-8 w-full btn btn-primary">อัปเกรดเป็น VIP</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PARTNER VENUES -->
+        <section id="partner-venues" class="py-20">
+            <div class="container mx-auto">
+                <div class="text-center mb-12 px-6" data-aos="fade-up">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white uppercase tracking-wide">สถานที่แนะนำ<span class="highlight-text">สำหรับค่ำคืนสุดพิเศษ</span></h2>
+                    <p class="text-gray-400 max-w-2xl mx-auto mt-4">พาร์ทเนอร์ร้านอาหารและสถานบันเทิงชั้นนำ ที่พร้อมมอบประสบการณ์เหนือระดับให้กับคุณ</p>
+                </div>
+                <div id="venues-slider" class="relative group slider-wrapper" data-aos="fade-up">
+                    <div id="venues-slider-container" class="flex items-stretch overflow-x-auto snap-x snap-mandatory scroll-smooth pb-6 -mb-6 scrollbar-hide pl-6 md:pl-0">
+                        <!-- Venue cards will be injected by JS -->
+                    </div>
+                     <button id="venues-slider-prev" class="absolute top-1/2 -translate-y-1/2 left-0 w-12 h-full bg-gradient-to-r from-bg-dark to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 md:flex items-center justify-center hidden">
+                        <i data-lucide="chevron-left" class="w-8 h-8"></i>
+                    </button>
+                    <button id="venues-slider-next" class="absolute top-1/2 -translate-y-1/2 right-0 w-12 h-full bg-gradient-to-l from-bg-dark to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 md:flex items-center justify-center hidden">
+                        <i data-lucide="chevron-right" class="w-8 h-8"></i>
+                    </button>
+                </div>
+                 <div class="text-center mt-12 px-6" data-aos="fade-up">
+                     <a href="#" class="btn btn-outline">ลงทะเบียนสถานที่ของคุณ</a>
+                 </div>
+            </div>
+        </section>
+        
+        <!-- CTA -->
+        <section class="py-20 bg-gray-900/50">
+            <div class="container mx-auto px-6 text-center" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 uppercase tracking-wide">พร้อมสำหรับ<span class="highlight-text">ประสบการณ์ใหม่</span>แล้วหรือยัง?</h2>
+                <p class="text-gray-400 mb-8 max-w-2xl mx-auto">หากคุณได้รับรหัสเชิญแล้ว เริ่มต้นการเดินทางสู่ค่ำคืนที่น่าจดจำได้เลย</p>
+                <div class="flex justify-center">
+                    <button id="footer-invite-code-btn" class="px-8 py-3 rounded-md font-semibold btn btn-primary text-lg">ใช้รหัสเชิญของคุณ</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <main id="app-view" class="hidden container mx-auto px-6 py-8">
+        <!-- Search and Filter Section -->
+        <div class="glass-card p-6 rounded-xl mb-8">
+            <h2 class="text-2xl font-bold text-white mb-4">ค้นหาเพื่อนเที่ยว</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
+                <div class="lg:col-span-2">
+                    <label for="filter-keyword" class="text-sm text-gray-400">คำค้นหา</label>
+                    <input id="filter-keyword" type="text" placeholder="พิมพ์ชื่อ หรือ สไตล์..." class="w-full mt-1 bg-bg-light border border-border-color rounded-md py-2 px-3 focus:outline-none focus:border-primary-color transition text-white">
+                </div>
+                <div>
+                     <label for="filter-location" class="text-sm text-gray-400">พื้นที่</label>
+                    <select id="filter-location" class="custom-select w-full mt-1 rounded-md p-2.5 text-sm">
+                        <option value="">ทุกพื้นที่</option>
+                        <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+                        <option value="เชียงใหม่">เชียงใหม่</option>
+                        <option value="ภูเก็ต">ภูเก็ต</option>
+                    </select>
+                </div>
+                 <div>
+                     <label for="filter-age" class="text-sm text-gray-400">ช่วงอายุ</label>
+                    <select id="filter-age" class="custom-select w-full mt-1 rounded-md p-2.5 text-sm">
+                        <option value="">ทั้งหมด</option>
+                        <option value="18-24">18-24 ปี</option>
+                        <option value="25-30">25-30 ปี</option>
+                        <option value="31+">31 ปีขึ้นไป</option>
+                    </select>
+                </div>
+                 <div>
+                     <label for="filter-rating" class="text-sm text-gray-400">คะแนนรีวิว</label>
+                    <select id="filter-rating" class="custom-select w-full mt-1 rounded-md p-2.5 text-sm">
+                        <option value="">ทั้งหมด</option>
+                        <option value="4">4 ดาวขึ้นไป</option>
+                        <option value="3">3 ดาวขึ้นไป</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Grid -->
+        <div>
+            <p class="text-sm text-gray-400 mb-4">ผลลัพธ์: <span id="mc-results-count" class="highlight-text font-bold">0</span> รายการ</p>
+            <div id="mc-results-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Companion cards will be injected here -->
+            </div>
+            <div id="mc-no-results-message" class="text-center py-20 hidden h-full flex-col justify-center items-center">
+                <i data-lucide="search-x" class="w-16 h-16 mx-auto mb-4 text-gray-500"></i>
+                <h3 class="text-2xl font-bold text-white">ไม่พบคนที่ตรงกับเงื่อนไขของคุณ</h3>
+                <p class="text-gray-400 mt-2">ลองปรับเปลี่ยนตัวกรองเพื่อผลลัพธ์ที่ดีที่สุด</p>
+            </div>
+        </div>
+    </main>
+    <footer class="bg-black/30 border-t border-gray-800"><div class="container mx-auto px-6 py-12"><div class="mt-8 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm"><p>&copy; 2025 COINNEXT. All rights reserved.</p></div></div></footer>
+    <div id="admin-panel" class="fixed bottom-0 left-0 right-0 bg-secondary-color text-black p-4 shadow-lg transform translate-y-full z-50"></div>
+
+
+    <div id="modals-container">
+        
+        <div id="invite-code-modal" class="modal-container fixed inset-0 z-[60] p-4 hidden flex items-center justify-center"><div class="modal-overlay absolute inset-0 bg-black/70"></div><div class="modal-content glass-modal rounded-xl w-full max-w-sm flex flex-col"><button class="modal-close-btn absolute top-4 right-4 text-gray-400 hover:text-white z-20"><i data-lucide="x" class="w-6 h-6"></i></button><div class="p-8 text-center"><i data-lucide="key-round" class="w-12 h-12 mx-auto mb-4 text-primary-color"></i><h2 class="text-2xl font-bold text-white mb-2">กรอกรหัสเชิญ</h2><p class="text-gray-400 mb-6">กรุณากรอกรหัสเชิญเพื่อเข้าใช้งาน</p><form id="invite-code-form"><input id="invite-code-input" type="password" placeholder="ENTER INVITE CODE" class="w-full text-center tracking-widest bg-bg-light border border-border-color rounded-md py-3 px-4 focus:outline-none focus:border-primary-color transition text-black text-lg placeholder:text-gray-500 placeholder:tracking-normal"><p id="invite-code-error" class="text-red-500 text-sm mt-2 h-5"></p><button type="submit" class="w-full mt-4 btn btn-primary font-semibold p-3 rounded-md">เข้าสู่ระบบ</button></form></div></div></div>
+        <div id="profile-detail-modal" class="modal-container fixed inset-0 z-[70] p-4 hidden items-center justify-center"></div>
+
+        <div class="fixed bottom-6 right-6 z-40 hidden" id="chat-widget">
+            <button id="chat-bubble-btn" class="w-16 h-16 rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 relative btn-primary">
+                <i data-lucide="message-square" class="w-8 h-8"></i>
+                <span id="chat-counter" class="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-red-600 text-white text-xs font-bold ring-2 ring-gray-900 hidden">0</span>
+            </button>
+            
+            <div id="chat-modal" class="is-closed glass-modal absolute bottom-20 right-0 w-80 sm:w-96 h-[32rem] rounded-xl flex flex-col shadow-2xl">
+                <div class="p-4 border-b border-border-color flex items-center justify-between flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <img id="chat-header-avatar" src="" alt="Avatar" class="w-10 h-10 rounded-full object-cover">
+                        <div>
+                            <h3 id="chat-header-name" class="font-bold text-white"></h3>
+                            <p class="text-xs text-green-400">● ออนไลน์</p>
+                        </div>
+                    </div>
+                    <button id="chat-close-btn" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                
+                <div class="flex-1 flex flex-col p-4 overflow-y-auto scrollbar-hide">
+                    <div id="chat-messages-container" class="flex flex-col gap-3 mb-4">
+                    </div>
+                    
+                    <div id="offer-form-container" class="hidden mt-auto pt-4 border-t border-border-color">
+                         <p class="text-sm text-center text-gray-300 mb-3">กรอกรายละเอียดเพื่อยื่นข้อเสนอ</p>
+                         <form id="offer-form" class="space-y-3">
+                             <input type="date" id="offer-date" class="w-full bg-bg-light border border-border-color rounded-md p-2 text-sm text-white" required>
+                             <input type="time" id="offer-time" class="w-full bg-bg-light border border-border-color rounded-md p-2 text-sm text-white" required>
+                             <input type="number" id="offer-price" placeholder="ราคาที่เสนอ (บาท)" class="w-full bg-bg-light border border-border-color rounded-md p-2 text-sm text-white" required>
+                             <button type="submit" class="w-full btn btn-primary py-2 text-sm">ส่งข้อเสนอ</button>
+                         </form>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-border-color flex-shrink-0">
+                     <div class="flex items-center gap-2">
+                        <input type="text" id="chat-input" placeholder="พิมพ์ข้อความ..." class="flex-1 bg-bg-light border border-border-color rounded-full py-2 px-4 text-sm focus:outline-none focus:border-primary-color">
+                        <button id="show-offer-form-btn" class="btn btn-outline p-2 rounded-full flex-shrink-0"><i data-lucide="file-check" class="w-5 h-5"></i></button>
+                        <button id="chat-send-btn" class="btn btn-primary p-2 rounded-full flex-shrink-0"><i data-lucide="send" class="w-5 h-5"></i></button>
+                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="payment-modal" class="modal-container fixed inset-0 z-[90] p-4 hidden items-center justify-center"></div>
+        <div id="review-modal" class="modal-container fixed inset-0 z-[80] p-4 hidden items-center justify-center"></div>
+        <div id="notifications-modal" class="modal-container fixed inset-0 z-[80] p-4 hidden"></div>
+
+    </div>
+
+    <script>
+    // ========= 1. APPLICATION DATA & STATE =========
+    const MC_DATA = [ 
+        { id: 'mc-1', name: 'Zonic', image: 'https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายปาร์ตี้ / Entertainer', verifiedLevel: 'pro', location: 'กรุงเทพมหานคร', age: 28, rating: 4.9, stats: '36-24-36', bio: 'ดีเจและสายปาร์ตี้ตัวยง ชอบเสียงเพลงและแสงสีเป็นชีวิตจิตใจ พร้อมที่จะทำให้ค่ำคืนของคุณสนุกสุดเหวี่ยงและน่าจดจำ!', gallery: [ 'https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=800', 'https://images.pexels.com/photos/2240763/pexels-photo-2240763.jpeg?auto=compress&cs=tinysrgb&w=800', 'https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=800' ], reviews: [ { user: 'คุณเอก', rating: 5, comment: 'สนุกสุดๆ ไปเลยครับ น้อง Zonic เอ็นเตอร์เทนเก่งมาก!' }, { user: 'Client-007', rating: 5, comment: 'มืออาชีพมากครับ ไว้จะใช้บริการอีกแน่นอน' } ] }, 
+        { id: 'mc-2', name: 'Victoria', image: 'https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายหรู / Dinner Date', verifiedLevel: 'pro', location: 'กรุงเทพมหานคร', age: 25, rating: 4.8, stats: '34-25-35', bio: 'ชอบพูดคุยแลกเปลี่ยนทัศนคติในบรรยากาศสบายๆ เหมาะสำหรับมื้อค่ำสุดพิเศษหรืองานเลี้ยงที่เป็นส่วนตัว สามารถสื่อสารภาษาอังกฤษได้ดีค่ะ', gallery: ['https://images.pexels.com/photos/2789328/pexels-photo-2789328.jpeg?auto=compress&cs=tinysrgb&w=800','https://images.pexels.com/photos/3757955/pexels-photo-3757955.jpeg?auto=compress&cs=tinysrgb&w=800'], reviews: [ { user: 'Mr. John', rating: 5, comment: 'Victoria is a delightful companion for any formal event. Very classy.' } ] }, 
+        { id: 'mc-3', name: 'น้ำหวาน', image: 'https://images.pexels.com/photos/5067699/pexels-photo-5067699.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายชิล / เพื่อนคุย', verifiedLevel: null, location: 'เชียงใหม่', age: 22, rating: 4.5, stats: '33-24-34', bio: 'สาวเหนือใจดี ชอบคาเฟ่ฮอปปิ้ง เดินเล่นสบายๆ ใครมองหาเพื่อนคุยที่ทำให้คุณยิ้มได้ ทักมาได้เลยเจ้า', gallery: [], reviews: [] },
+        { id: 'mc-4', name: 'Kat', image: 'https://images.pexels.com/photos/3769021/pexels-photo-3769021.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สาย Glamour / นางแบบ', verifiedLevel: 'basic', location: 'ภูเก็ต', age: 26, rating: 4.7, stats: '35-25-36', bio: 'รักทะเลและแสงแดด ชอบกิจกรรม outdoor และปาร์ตี้ริมหาด', gallery: [], reviews: [] },
+        { id: 'mc-5', name: 'Momo', image: 'https://images.pexels.com/photos/3775541/pexels-photo-3775541.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายฮา / เป็นกันเอง', verifiedLevel: null, location: 'กรุงเทพมหานคร', age: 30, rating: 4.6, stats: 'N/A', bio: 'คุยได้ทุกเรื่อง เป็นกันเองสุดๆ ใครเครียดๆ มา รับรองกลับไปหัวเราะท้องแข็ง', gallery: [], reviews: [] },
+        { id: 'mc-6', name: 'J&J', image: 'https://images.pexels.com/photos/1153213/pexels-photo-1153213.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'เที่ยวเป็นคู่ / Double Date', verifiedLevel: 'basic', location: 'เชียงใหม่', age: 27, rating: 4.9, stats: 'N/A', bio: 'เราสองคนชอบเจอเพื่อนใหม่ๆ ไปกันเป็นกลุ่มยิ่งสนุก!', gallery: [], reviews: [] },
+        { id: 'mc-7', name: 'ลิลลี่', image: 'https://images.pexels.com/photos/3772510/pexels-photo-3772510.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายอาร์ต / เดินมิวเซียม', verifiedLevel: 'pro', location: 'กรุงเทพมหานคร', age: 24, rating: 4.8, stats: '32-24-34', bio: 'ชอบเสพงานศิลป์ แวะจิบกาแฟร้านเก๋ๆ คุยเรื่องปรัชญาและหนังสือ', gallery: [], reviews: [] },
+        { id: 'mc-8', name: 'ไวน์', image: 'https://images.pexels.com/photos/1382731/pexels-photo-1382731.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายแฟชั่น / Shopping', verifiedLevel: null, location: 'กรุงเทพมหานคร', age: 29, rating: 4.7, stats: '34-26-35', bio: 'อัปเดตเทรนด์แฟชั่นตลอดเวลา พร้อมเป็นที่ปรึกษาและเพื่อนช้อปปิ้งของคุณ', gallery: [], reviews: [] },
+        { id: 'mc-9', name: 'ฟ้าใส', image: 'https://images.pexels.com/photos/1848565/pexels-photo-1848565.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายเกมเมอร์ / E-Sport', verifiedLevel: 'basic', location: 'กรุงเทพมหานคร', age: 21, rating: 4.9, stats: 'N/A', bio: 'แรงค์ไม่เคยตก พร้อมบวก! ชวนตี้ได้ทุกเกม', gallery: [], reviews: [] },
+        { id: 'mc-10', name: 'Alex', image: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายอินเตอร์ / Expat Buddy', verifiedLevel: 'pro', location: 'ภูเก็ต', age: 32, rating: 4.9, stats: 'N/A', bio: 'Speak fluent English. Ready to show you the best spots in Phuket.', gallery: [], reviews: [] },
+        { id: 'mc-11', name: 'ต้นข้าว', image: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายธรรมชาติ / ท่องเที่ยว', verifiedLevel: null, location: 'เชียงใหม่', age: 26, rating: 4.8, stats: '33-25-35', bio: 'รักการเดินป่า กางเต็นท์ ดูดาว ใครชอบธรรมชาติเหมือนกัน ทักมาเลย', gallery: [], reviews: [] },
+        { id: 'mc-12', name: 'เจนนี่', image: 'https://images.pexels.com/photos/2726111/pexels-photo-2726111.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายฟิตเนส / Sporty', verifiedLevel: 'basic', location: 'กรุงเทพมหานคร', age: 27, rating: 4.7, stats: '34-25-36', bio: 'ชวนไปยิม ต่อยมวย วิ่งในสวนได้หมด! สุขภาพดีไปด้วยกัน', gallery: [], reviews: [] },
+        { id: 'mc-13', name: 'มายด์', image: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=800', category: 'สายหวาน / คาเฟ่', verifiedLevel: 'pro', location: 'กรุงเทพมหานคร', age: 23, rating: 4.9, stats: '33-24-34', bio: 'รู้จักคาเฟ่เปิดใหม่ทุกมุมเมือง พร้อมไปถ่ายรูปสวยๆ กับคุณ', gallery: [], reviews: [] }
+    ];
+    const VENUE_DATA = [ 
+        { name: 'Route66 Club', location: 'RCA, Bangkok', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800' }, 
+        { name: 'Onyx Club', location: 'RCA, Bangkok', image: 'https://images.unsplash.com/photo-1563207904-92331a1a5948?q=80&w=800' }, 
+        { name: 'Warm Up Cafe', location: 'Nimman, Chiang Mai', image: 'https://images.unsplash.com/photo-1578736641334-42a7c98a58a6?q=80&w=800' }, 
+        { name: 'Cafe Del Mar', location: 'Kamala, Phuket', image: 'https://images.unsplash.com/photo-1571261361257-6078e6221c21?q=80&w=800' },
+        { name: 'Sing Sing Theater', location: 'Sukhumvit, Bangkok', image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800' },
+        { name: 'Maggie Choo\'s', location: 'Silom, Bangkok', image: 'https://images.unsplash.com/photo-1582202283122-c8ae234504a2?q=80&w=800' },
+        { name: 'Tha Phae East', location: 'Chiang Mai', image: 'https://images.unsplash.com/photo-1551821738-88b9bf58716a?q=80&w=800' },
+        { name: 'Illuzion Phuket', location: 'Patong, Phuket', image: 'https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=800' },
+        { name: 'Beam Club', location: 'Thonglor, Bangkok', image: 'https://images.unsplash.com/photo-1541532713592-79a0317b6b77?q=80&w=800' },
+        { name: 'Tichuca Rooftop Bar', location: 'Sukhumvit, Bangkok', image: 'https://images.unsplash.com/photo-1596701062351-8c2c14d1a2b8?q=80&w=800' },
+        { name: 'Catch Beach Club', location: 'Bang Tao, Phuket', image: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=800' },
+        { name: 'Zoe in Yellow', location: 'Chiang Mai', image: 'https://images.unsplash.com/photo-1598483445834-507c9b7b3b64?q=80&w=800' },
+        { name: 'The Cassette Music Bar', location: 'Ekkamai, Bangkok', image: 'https://images.unsplash.com/photo-1603217041431-9a9937e38b30?q=80&w=800' },
+        { name: 'Vertigo at Banyan Tree', location: 'Sathorn, Bangkok', image: 'https://images.unsplash.com/photo-1529924923362-632b49c01679?q=80&w=800' }
+    ];
+    let conversations = {
+        'mc-1': { messages: [{ sender: 'mc', text: 'สวัสดีค่ะ สนใจสอบถามรายละเอียดได้เลยนะคะ' }], offer: null },
+        'mc-2': { messages: [], offer: null },
+        'mc-3': { messages: [], offer: null }
+    };
+    let BOOKING_DATA = {};
+    let notifications = [];
+    let favorites = ['mc-2']; 
+    let currentUser = null; 
+    let activeChatMcId = null;
+
+    // ========= 2. INITIALIZATION & EVENT LISTENERS =========
+    document.addEventListener('DOMContentLoaded', () => {
+        const preloader = document.getElementById('preloader');
+        window.onload = () => {
+            preloader.classList.add('start-exit');
+            preloader.addEventListener('transitionend', () => preloader.style.display = 'none', { once: true });
+        };
+        
+        renderSlider('featured-mc-slider-container', MC_DATA.slice(0, 10), createSliderCard);
+        renderSlider('venues-slider-container', VENUE_DATA, createVenueSliderCard);
+
+        initializeSlider('featured-mc-slider', 'featured-mc-slider-container', 'featured-mc-slider-prev', 'featured-mc-slider-next');
+        initializeSlider('venues-slider', 'venues-slider-container', 'venues-slider-prev', 'venues-slider-next');
+        
+        setupInitialEventListeners();
+        setupChatWidget();
+        
+        setTimeout(() => {
+            if (typeof AOS !== 'undefined') AOS.init({ duration: 800, once: true, offset: 50 });
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }, 100);
+    });
+
+    function setupInitialEventListeners() {
+        const inviteCodeModal = document.getElementById('invite-code-modal');
+        document.getElementById('invite-code-btn').addEventListener('click', () => openModal(inviteCodeModal));
+        document.getElementById('hero-invite-code-btn').addEventListener('click', () => openModal(inviteCodeModal));
+        document.getElementById('footer-invite-code-btn').addEventListener('click', () => openModal(inviteCodeModal));
+        document.getElementById('invite-code-form').addEventListener('submit', handleLogin);
+        document.getElementById('logout-btn').addEventListener('click', setUIForLoggedOutState);
+        document.getElementById('notifications-btn').addEventListener('click', openNotificationsModal);
+        
+        document.body.addEventListener('click', (e) => {
+            if (e.target.closest('.modal-close-btn') || e.target.classList.contains('modal-overlay')) {
+                const modal = e.target.closest('.modal-container');
+                if(modal) closeModal(modal);
+            }
+            const card = e.target.closest('[data-mc-id]');
+            if (card && !e.target.closest('.favorite-btn')) {
+                const view = card.closest('#app-view') ? 'app-view' : 'landing';
+                openProfileModal(card.dataset.mcId, view);
+            }
+            const profileChatBtn = e.target.closest('#profile-message-btn');
+            if (profileChatBtn) {
+                closeModal(document.getElementById('profile-detail-modal'));
+                openChat(profileChatBtn.dataset.mcId);
+            }
+            const paymentBtn = e.target.closest('.offer-card-payment-btn');
+            if(paymentBtn) {
+                const mcId = paymentBtn.dataset.mcId;
+                openPaymentModal(mcId);
+            }
+            const backToChatBtn = e.target.closest('#back-to-chat-btn');
+            if (backToChatBtn) {
+                const mcId = backToChatBtn.dataset.mcId;
+                closeModal(document.getElementById('payment-modal'));
+                openChat(mcId);
+            }
+            // Handle notification clicks
+            const notificationItem = e.target.closest('.notification-item[data-booking-id]');
+            if (notificationItem && notificationItem.dataset.type === 'review_request') {
+                openReviewModal(notificationItem.dataset.bookingId);
+                closeModal(document.getElementById('notifications-modal'));
+            }
+        });
+        
+        document.getElementById('filter-keyword').addEventListener('input', applyFiltersAndRender);
+    }
+
+    // ========= 3. WORKFLOW & UI LOGIC =========
+
+    function handleLogin(e) {
+        e.preventDefault();
+        const inviteCodeInput = document.getElementById('invite-code-input');
+        const inviteCodeError = document.getElementById('invite-code-error');
+        const code = inviteCodeInput.value.trim().toUpperCase();
+        inviteCodeError.textContent = '';
+        
+        let userType = null;
+        if (code === 'USER-1234') userType = 'user';
+        if (code === 'MC-5678') userType = 'mc';
+        if (code === 'ADMIN-SUPER') userType = 'admin';
+
+        if (userType) {
+            closeModal(document.getElementById('invite-code-modal'));
+            setUIForLoggedInState(userType);
+        } else {
+            inviteCodeError.textContent = 'รหัสเชิญไม่ถูกต้อง';
+        }
+    }
+
+    function setUIForLoggedInState(userType) {
+        currentUser = userType;
+        document.getElementById('landing-page-content').classList.add('hidden');
+        document.getElementById('app-view').classList.remove('hidden');
+        document.getElementById('auth-section-header').classList.add('hidden');
+        document.getElementById('user-section-header').classList.remove('hidden');
+        document.getElementById('user-section-header').classList.add('flex');
+        document.getElementById('chat-widget').classList.remove('hidden');
+        
+        if (userType === 'user') {
+            // Simulate a completed booking for the user to review
+            const bookingId = `B-${Date.now()}`;
+            BOOKING_DATA[bookingId] = { mcId: 'mc-1', date: '15 ต.ค. 2568', status: 'completed' };
+            notifications.push({ id: Date.now(), bookingId: bookingId, mcId: 'mc-1', unread: true, type: 'review_request' });
+        }
+        
+        updateCounters();
+        applyFiltersAndRender();
+    }
+    
+    function setUIForLoggedOutState() {
+        currentUser = null;
+        notifications = [];
+        BOOKING_DATA = {};
+        document.getElementById('landing-page-content').classList.remove('hidden');
+        document.getElementById('app-view').classList.add('hidden');
+        document.getElementById('auth-section-header').classList.remove('hidden');
+        document.getElementById('user-section-header').classList.add('hidden');
+        document.getElementById('chat-widget').classList.add('hidden');
+        closeModal(document.getElementById('chat-modal'));
+        updateCounters();
+    }
+
+    function openProfileModal(mcId, view) {
+        const mc = MC_DATA.find(m => m.id === mcId);
+        if (!mc) return;
+        const modalContainer = document.getElementById('profile-detail-modal');
+        
+        const messageButtonHtml = view === 'app-view' 
+            ? `<button id="profile-message-btn" class="btn btn-primary w-full" data-mc-id="${mc.id}"><i data-lucide="message-circle" class="w-5 h-5 mr-2"></i> ส่งข้อความ</button>`
+            : `<button id="hero-invite-code-btn" class="btn btn-primary w-full"><i data-lucide="key-round" class="w-5 h-5 mr-2"></i> ใช้รหัสเชิญเพื่อติดต่อ</button>`;
+
+        modalContainer.innerHTML = `
+            <div class="modal-overlay absolute inset-0 bg-black/70"></div>
+            <div class="modal-content glass-modal rounded-xl w-full max-w-4xl flex flex-col h-[90vh] relative">
+                <button class="modal-close-btn absolute top-4 right-4 text-gray-400 hover:text-white z-20"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <div class="flex-1 overflow-y-auto scrollbar-hide">
+                    <div class="h-64 md:h-96 relative">
+                        <img data-src="${mc.image}" class="lazyload w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-bg-medium to-transparent"></div>
+                        <div class="absolute bottom-6 left-6 text-white"><h2 class="text-4xl font-bold">${mc.name}</h2><p class="text-lg text-primary-color">${mc.category}</p></div>
+                    </div>
+                    <div class="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2">
+                            <h3 class="text-2xl font-bold mb-4">เกี่ยวกับฉัน</h3><p class="text-gray-300 mb-8">${mc.bio}</p>
+                            <h3 class="text-2xl font-bold mb-4">แกลเลอรี</h3><div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">${mc.gallery.map(imgUrl => `<div class="aspect-square bg-bg-light rounded-lg"><img data-src="${imgUrl}" class="lazyload w-full h-full object-cover rounded-lg"></div>`).join('') || '<p class="text-gray-500 col-span-full">ไม่มีรูปภาพเพิ่มเติม</p>'}</div>
+                            <h3 class="text-2xl font-bold mb-4">รีวิว (${mc.reviews.length})</h3><div class="space-y-4">${mc.reviews.map(review => `<div class="bg-bg-light p-4 rounded-lg"><div class="flex items-center justify-between mb-1"><p class="font-semibold text-white">${review.user}</p><div class="flex items-center text-yellow-400">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</div></div><p class="text-gray-400 text-sm">${review.comment}</p></div>`).join('') || '<p class="text-gray-500">ยังไม่มีรีวิว</p>'}</div>
+                        </div>
+                        <div class="lg:col-span-1"><div class="glass-card rounded-lg p-6 sticky top-6">
+                                <div class="flex items-center justify-between mb-4"><span class="flex items-center text-xl font-bold text-yellow-400"><i data-lucide="star" class="w-5 h-5 fill-current mr-2"></i> ${mc.rating}</span><button class="favorite-btn p-2 rounded-full bg-bg-light ${favorites.includes(mc.id) ? 'favorited' : ''}" data-mc-id="${mc.id}"><i data-lucide="heart" class="w-6 h-6 pointer-events-none"></i></button></div>
+                                <div class="space-y-3 text-sm mb-6"><div class="flex justify-between"><span>อายุ:</span><span class="font-semibold">${mc.age} ปี</span></div><div class="flex justify-between"><span>สัดส่วน:</span><span class="font-semibold">${mc.stats}</span></div><div class="flex justify-between"><span>พื้นที่:</span><span class="font-semibold">${mc.location}</span></div></div>
+                                ${messageButtonHtml}
+                        </div></div>
+                    </div>
+                </div>
+            </div>`;
+        openModal(modalContainer);
+        lucide.createIcons();
+    }
+
+    // ========= 4. CHAT & OFFER SYSTEM =========
+    function setupChatWidget() {
+        const bubbleBtn = document.getElementById('chat-bubble-btn');
+        const chatModal = document.getElementById('chat-modal');
+        const closeBtn = document.getElementById('chat-close-btn');
+        const showOfferBtn = document.getElementById('show-offer-form-btn');
+        const offerFormContainer = document.getElementById('offer-form-container');
+        const offerForm = document.getElementById('offer-form');
+
+        bubbleBtn.addEventListener('click', () => {
+            if (!activeChatMcId) {
+                alert("กรุณาเลือกโปรไฟล์ที่ต้องการสนทนาก่อน");
+                return;
+            }
+            chatModal.classList.toggle('is-closed');
+            chatModal.classList.toggle('is-open');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            chatModal.classList.remove('is-open');
+            chatModal.classList.add('is-closed');
+        });
+
+        showOfferBtn.addEventListener('click', () => offerFormContainer.classList.toggle('hidden'));
+        
+        offerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const conversation = conversations[activeChatMcId];
+            if (conversation && conversation.offer && conversation.offer.status !== 'pending') {
+                alert('คุณมีข้อเสนอที่ดำเนินการอยู่แล้ว');
+                return;
+            }
+
+            if (conversation) {
+                conversation.offer = {
+                    date: document.getElementById('offer-date').value,
+                    time: document.getElementById('offer-time').value,
+                    price: document.getElementById('offer-price').value,
+                    status: 'pending'
+                };
+                conversation.messages.push({ sender: 'system', text: 'คุณได้ยื่นข้อเสนอใหม่' });
+                
+                renderChat(activeChatMcId);
+                offerFormContainer.classList.add('hidden');
+                offerForm.reset();
+                
+                simulateMcAcceptance(activeChatMcId);
+            }
+        });
+    }
+    
+    function openChat(mcId) {
+        activeChatMcId = mcId;
+        const chatModal = document.getElementById('chat-modal');
+        chatModal.classList.add('is-open');
+        chatModal.classList.remove('is-closed');
+        renderChat(mcId);
+    }
+    
+    function renderChat(mcId) {
+        const mcData = MC_DATA.find(mc => mc.id === mcId);
+        const conversation = conversations[mcId];
+        if (!mcData || !conversation) return;
+
+        document.getElementById('chat-header-avatar').src = mcData.image;
+        document.getElementById('chat-header-name').textContent = `คุยกับ ${mcData.name}`;
+        
+        const messagesContainer = document.getElementById('chat-messages-container');
+        messagesContainer.innerHTML = '';
+        
+        conversation.messages.forEach(msg => messagesContainer.appendChild(createMessageElement(msg)));
+        if (conversation.offer) messagesContainer.appendChild(createOfferCard(conversation.offer, mcId));
+
+        messagesContainer.parentElement.scrollTop = messagesContainer.parentElement.scrollHeight;
+        lucide.createIcons();
+    }
+
+    function createMessageElement(msg) {
+        const el = document.createElement('div');
+        if (msg.sender === 'system') {
+            el.className = 'text-center text-xs text-gray-400';
+            el.textContent = msg.text;
+        } else {
+            el.className = `chat-message ${msg.sender === 'user' ? 'sent' : 'received'}`;
+            el.textContent = msg.text;
+        }
+        return el;
+    }
+
+    function createOfferCard(offer, mcId) {
+        const card = document.createElement('div');
+        card.className = 'offer-card p-4 rounded-lg w-full';
+        
+        let statusText, statusColor, actionButton = '';
+        switch (offer.status) {
+            case 'pending':
+                statusText = 'รอการตอบรับ'; statusColor = 'border-yellow-400';
+                break;
+            case 'accepted':
+                statusText = 'ยอมรับข้อเสนอแล้ว'; statusColor = 'border-green-400';
+                actionButton = `<button class="w-full btn btn-primary text-sm py-2 mt-3 offer-card-payment-btn" data-mc-id="${mcId}">ชำระเงินเพื่อยืนยัน</button>`;
+                break;
+            case 'paid':
+                 statusText = 'ชำระเงินแล้ว'; statusColor = 'border-blue-400';
+                 actionButton = `<div class="text-center mt-3 text-sm text-blue-300">ยืนยันนัดหมายสำเร็จ!</div>`;
+                break;
+        }
+
+        card.classList.add(statusColor);
+        card.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+                <h4 class="font-bold text-white">ข้อเสนอการจอง</h4>
+                <span class="text-xs font-bold px-2 py-1 rounded-full bg-opacity-20 ${statusColor.replace('border', 'bg').replace('-400', '-400/20')}">${statusText}</span>
+            </div>
+            <div class="text-sm space-y-1 text-gray-300">
+                <p><strong>วันที่:</strong> ${offer.date}</p>
+                <p><strong>เวลา:</strong> ${offer.time} น.</p>
+                <p><strong>ราคา:</strong> ${Number(offer.price).toLocaleString()} บาท</p>
+            </div>
+            ${actionButton}`;
+        return card;
+    }
+    
+    function simulateMcAcceptance(mcId) {
+        setTimeout(() => {
+            const conversation = conversations[mcId];
+            if (conversation && conversation.offer && conversation.offer.status === 'pending') {
+                conversation.offer.status = 'accepted';
+                conversation.messages.push({ sender: 'system', text: `${MC_DATA.find(mc => mc.id === mcId).name} ได้ยอมรับข้อเสนอของคุณ` });
+                renderChat(mcId);
+            }
+        }, 3000);
+    }
+    
+    // ========= 5. PAYMENT WORKFLOW =========
+    function openPaymentModal(mcId) {
+        const mc = MC_DATA.find(m => m.id === mcId);
+        const offer = conversations[mcId].offer;
+        if (!mc || !offer) return;
+
+        const platformFee = offer.price * 0.05;
+        const total = Number(offer.price) + platformFee;
+
+        const modalContainer = document.getElementById('payment-modal');
+        modalContainer.innerHTML = `
+            <div class="modal-overlay absolute inset-0 bg-black/70"></div>
+            <div id="payment-content" class="modal-content glass-modal rounded-xl w-full max-w-4xl flex flex-col h-[90vh] relative overflow-hidden">
+                <!-- Step 1: Summary -->
+            </div>
+        `;
+        openModal(modalContainer);
+        renderPaymentStep1(mc, offer, platformFee, total);
+        lucide.createIcons();
+    }
+
+    function renderPaymentStep1(mc, offer, platformFee, total) {
+        const paymentContent = document.getElementById('payment-content');
+        paymentContent.innerHTML = `
+            <button class="modal-close-btn absolute top-4 right-4 text-gray-400 hover:text-white z-20"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <div class="p-6 text-center border-b border-border-color">
+                <h2 class="text-2xl font-bold text-white">ยืนยันการชำระเงิน</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2">
+                <!-- Left: Summary -->
+                <div class="p-8 border-b md:border-b-0 md:border-r border-border-color flex flex-col">
+                    <h3 class="text-xl font-bold mb-4">สรุปการนัดหมาย</h3>
+                    <div class="flex items-center gap-4 mb-6">
+                        <img src="${mc.image}" class="w-16 h-16 rounded-full object-cover">
+                        <div>
+                            <p class="text-gray-400 text-sm">นัดหมายกับ:</p>
+                            <p class="text-white font-bold text-lg">${mc.name}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 text-sm border-t border-border-color pt-6">
+                        <div class="flex justify-between"><span>วันที่นัดหมาย:</span><span class="font-semibold">${offer.date}</span></div>
+                        <div class="flex justify-between"><span>เวลา:</span><span class="font-semibold">${offer.time} น.</span></div>
+                        <div class="flex justify-between"><span>ระยะเวลา (จำลอง):</span><span class="font-semibold">4 ชั่วโมง</span></div>
+                    </div>
+                    <div class="mt-auto text-xs text-gray-500 p-4 bg-bg-dark rounded-lg">
+                        <i data-lucide="shield-check" class="w-4 h-4 inline-block mr-1"></i> เงินของคุณจะถูกเก็บไว้ที่ COINNEXT อย่างปลอดภัย และจะถูกโอนให้ MC หลังจากจบงานเรียบร้อยแล้ว
+                    </div>
+                </div>
+                <!-- Right: Payment -->
+                <div class="p-8 flex flex-col">
+                    <h3 class="text-xl font-bold mb-4">รายละเอียดค่าใช้จ่าย</h3>
+                    <div class="space-y-2 text-sm border-b border-border-color pb-4 mb-4">
+                        <div class="flex justify-between text-gray-300"><span>ค่าบริการตามที่ตกลง:</span><span>${Number(offer.price).toLocaleString()} บาท</span></div>
+                        <div class="flex justify-between text-gray-300"><span>ค่าธรรมเนียมแพลตฟอร์ม (5%):</span><span>${platformFee.toLocaleString()} บาท</span></div>
+                    </div>
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="text-lg font-semibold">ยอดรวมที่ต้องชำระ:</span>
+                        <span class="text-3xl font-bold text-primary-color">${total.toLocaleString()} บาท</span>
+                    </div>
+                    <form id="payment-form" class="flex-1 flex flex-col">
+                        <p class="text-lg font-semibold mb-4">เลือกวิธีการชำระเงิน</p>
+                        <div class="flex border-b border-border-color mb-4">
+                            <button type="button" class="payment-tab flex-1 py-3 text-sm font-semibold active" data-tab="qr">QR PromptPay</button>
+                            <button type="button" class="payment-tab flex-1 py-3 text-sm font-semibold" data-tab="card">Credit / Debit Card</button>
+                        </div>
+                        <div class="flex-1">
+                            <div id="qr-content" class="payment-tab-content active text-center">
+                                <img src="https://placehold.co/250x250/ffffff/000000?text=Scan+QR+Code" alt="QR Code" class="mx-auto rounded-lg">
+                                <p class="text-sm mt-4 text-gray-400">สแกนเพื่อชำระเงินผ่านแอปธนาคารของคุณ</p>
+                                <p class="text-lg mt-2 font-mono">หมดอายุใน <span id="qr-timer">15:00</span></p>
+                            </div>
+                            <div id="card-content" class="payment-tab-content space-y-3">
+                                <input type="text" placeholder="หมายเลขบัตร" class="w-full bg-bg-light border border-border-color rounded-md p-2 text-sm">
+                                <input type="text" placeholder="ชื่อบนบัตร" class="w-full bg-bg-light border border-border-color rounded-md p-2 text-sm">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="text" placeholder="วันหมดอายุ (MM/YY)" class="w-full bg-bg-light border border-border-color rounded-md p-2 text-sm">
+                                    <input type="text" placeholder="CVC" class="w-full bg-bg-light border border-border-color rounded-md p-2 text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full btn btn-primary py-3 mt-6">ยืนยันการชำระเงิน</button>
+                    </form>
+                </div>
+            </div>`;
+        
+        lucide.createIcons();
+        
+        const paymentForm = document.getElementById('payment-form');
+        paymentForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            renderPaymentStep2(mc);
+        });
+        
+        document.querySelectorAll('.payment-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.payment-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.payment-tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(`${tab.dataset.tab}-content`).classList.add('active');
+            });
+        });
+    }
+
+    function renderPaymentStep2(mc) {
+        const paymentContent = document.getElementById('payment-content');
+        paymentContent.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-full text-center">
+                <i data-lucide="loader-2" class="w-16 h-16 text-primary-color animate-spin"></i>
+                <h2 class="text-2xl font-bold text-white mt-6">กำลังตรวจสอบการชำระเงิน</h2>
+                <p class="text-gray-400 mt-2">กรุณารอสักครู่ ระบบกำลังยืนยันยอดเงินของคุณ...</p>
+            </div>
+        `;
+        lucide.createIcons();
+        
+        setTimeout(() => {
+            renderPaymentStep3(mc);
+        }, 3000); // Simulate 3 second processing time
+    }
+
+    function renderPaymentStep3(mc) {
+        // Update data state
+        conversations[mc.id].offer.status = 'paid';
+        conversations[mc.id].messages.push({ sender: 'system', text: 'ชำระเงินแล้ว - ยืนยันนัดหมายสำเร็จ' });
+
+        const paymentContent = document.getElementById('payment-content');
+        const offer = conversations[mc.id].offer;
+        paymentContent.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-full text-center p-8">
+                <i data-lucide="check-circle-2" class="w-24 h-24 text-green-400"></i>
+                <h2 class="text-3xl font-bold text-white mt-6">ชำระเงินสำเร็จ!</h2>
+                <p class="text-gray-300 mt-2 max-w-md">การนัดหมายของคุณกับ <strong>${mc.name}</strong> ได้รับการยืนยันเรียบร้อยแล้ว</p>
+                <div class="my-8 p-6 bg-bg-light rounded-lg text-left w-full max-w-sm">
+                    <h4 class="font-bold text-lg mb-4 text-white">สรุปการนัดหมาย</h4>
+                     <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span>วันที่:</span><span class="font-semibold">${offer.date}</span></div>
+                        <div class="flex justify-between"><span>เวลา:</span><span class="font-semibold">${offer.time} น.</span></div>
+                    </div>
+                </div>
+                <button id="back-to-chat-btn" data-mc-id="${mc.id}" class="btn btn-primary w-full max-w-sm py-3">กลับไปที่แชท</button>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+    
+    // ========= 6. NOTIFICATION & REVIEW SYSTEM =========
+    function updateCounters() {
+        const unreadNotifs = notifications.filter(n => n.unread).length;
+        const notifCounter = document.getElementById('notifications-counter');
+        notifCounter.textContent = unreadNotifs;
+        notifCounter.classList.toggle('hidden', unreadNotifs === 0);
+    }
+
+    function openNotificationsModal() {
+        const modalContainer = document.getElementById('notifications-modal');
+        
+        let itemsHtml = notifications.map(n => {
+            let text = '';
+            let icon = 'message-square';
+            if (n.type === 'review_request') {
+                const mc = MC_DATA.find(m => m.id === n.mcId);
+                text = `การนัดหมายกับ <strong>${mc.name}</strong> ได้เสร็จสิ้นแล้ว! แบ่งปันประสบการณ์ของคุณ`;
+                icon = 'star';
+            }
+            return `<div class="notification-item p-4 flex items-start gap-4 ${n.unread ? 'unread' : ''}" data-type="${n.type}" data-booking-id="${n.bookingId}" data-notification-id="${n.id}">
+                        <i data-lucide="${icon}" class="w-5 h-5 text-gray-400 mt-1"></i>
+                        <p class="text-sm text-gray-200 flex-1">${text}</p>
+                    </div>`;
+        }).join('');
+
+        if (notifications.length === 0) {
+            itemsHtml = `<div class="text-center text-gray-400 py-20"><i data-lucide="bell-off" class="w-16 h-16 mx-auto mb-4 text-gray-500"></i><p>ไม่มีการแจ้งเตือน</p></div>`;
+        }
+
+        modalContainer.innerHTML = `
+            <div class="modal-overlay absolute inset-0 bg-black/70"></div>
+            <div class="modal-content dropdown-modal glass-modal rounded-xl w-full max-w-sm max-h-[calc(100vh-6rem)] flex flex-col absolute top-20 right-6">
+                <button class="modal-close-btn absolute top-4 right-4 text-gray-400 hover:text-white z-20"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <div class="p-6 text-center border-b border-border-color">
+                    <h2 class="text-2xl font-bold text-white">การแจ้งเตือน</h2>
+                </div>
+                <div class="flex-1 overflow-y-auto">${itemsHtml}</div>
+            </div>`;
+        
+        openModal(modalContainer);
+        lucide.createIcons();
+    }
+    
+    function openReviewModal(bookingId) {
+        const booking = BOOKING_DATA[bookingId];
+        if (!booking) return;
+        const mc = MC_DATA.find(m => m.id === booking.mcId);
+        
+        const modalContainer = document.getElementById('review-modal');
+        modalContainer.innerHTML = `<div id="review-content-wrapper"></div>`; // Wrapper for content switching
+        openModal(modalContainer);
+        renderReviewStep1(booking, mc);
+    }
+
+    function renderReviewStep1(booking, mc) {
+        const wrapper = document.getElementById('review-content-wrapper');
+        wrapper.innerHTML = `
+            <div class="modal-overlay absolute inset-0 bg-black/70"></div>
+            <div class="modal-content glass-modal rounded-xl w-full max-w-lg flex flex-col relative">
+                <button class="modal-close-btn absolute top-4 right-4 text-gray-400 hover:text-white z-20"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <div class="p-8 text-center">
+                    <img src="${mc.image}" class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2 border-primary-color">
+                    <h2 class="text-2xl font-bold text-white">ให้คะแนนประสบการณ์ของคุณกับ<br><span class="highlight-text">${mc.name}</span></h2>
+                    <p class="text-sm text-gray-400 mt-1">นัดหมายวันที่ ${booking.date}</p>
+                    
+                    <form id="review-form" class="mt-8">
+                        <div class="star-rating mb-6">
+                            <input type="radio" id="5-stars" name="rating" value="5" /><label for="5-stars">★</label>
+                            <input type="radio" id="4-stars" name="rating" value="4" /><label for="4-stars">★</label>
+                            <input type="radio" id="3-stars" name="rating" value="3" /><label for="3-stars">★</label>
+                            <input type="radio" id="2-stars" name="rating" value="2" /><label for="2-stars">★</label>
+                            <input type="radio" id="1-star" name="rating" value="1" /><label for="1-star">★</label>
+                        </div>
+                        <textarea id="review-comment" class="w-full h-24 bg-bg-light border border-border-color rounded-md p-3 text-sm focus:outline-none focus:border-primary-color" placeholder="แบ่งปันรายละเอียดเพิ่มเติม (ไม่บังคับ)..."></textarea>
+                        <button id="submit-review-btn" type="submit" class="w-full btn btn-primary py-3 mt-6" disabled>ส่งรีวิว</button>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        lucide.createIcons();
+        const form = document.getElementById('review-form');
+        const submitBtn = document.getElementById('submit-review-btn');
+        const ratingInputs = form.querySelectorAll('input[name="rating"]');
+
+        ratingInputs.forEach(input => input.addEventListener('change', () => {
+            submitBtn.disabled = false;
+        }));
+        
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const rating = form.querySelector('input[name="rating"]:checked').value;
+            const comment = document.getElementById('review-comment').value;
+            
+            mc.reviews.push({ user: 'You', rating: parseInt(rating), comment: comment });
+            
+            const notif = notifications.find(n => n.bookingId === booking.bookingId);
+            if (notif) notif.unread = false;
+            updateCounters();
+            
+            renderReviewStep2();
+        });
+    }
+
+    function renderReviewStep2() {
+        const wrapper = document.getElementById('review-content-wrapper');
+        wrapper.innerHTML = `
+             <div class="modal-overlay absolute inset-0 bg-black/70"></div>
+             <div class="modal-content glass-modal rounded-xl w-full max-w-lg flex flex-col relative text-center p-12">
+                <i data-lucide="party-popper" class="w-24 h-24 text-primary-color mx-auto"></i>
+                <h2 class="text-3xl font-bold text-white mt-6">ขอบคุณสำหรับรีวิว!</h2>
+                <p class="text-gray-300 mt-2">ความคิดเห็นของคุณมีค่า และจะช่วยให้สมาชิกท่านอื่นตัดสินใจได้ดียิ่งขึ้น</p>
+                <button class="modal-close-btn btn btn-primary w-full max-w-xs mx-auto py-3 mt-8">เสร็จสิ้น</button>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+
+
+    // ========= 7. HELPER & RENDER FUNCTIONS =========
+    function applyFiltersAndRender() {
+        const grid = document.getElementById('mc-results-grid');
+        const countEl = document.getElementById('mc-results-count');
+        grid.innerHTML = MC_DATA.map(createMcCard).join('');
+        countEl.textContent = MC_DATA.length;
+        lucide.createIcons();
+    }
+    
+    function createMcCard(mc) { const isFavorited = favorites.includes(mc.id); return `<div class="tilt-card rounded-xl overflow-hidden group cursor-pointer" data-mc-id="${mc.id}"><div class="relative aspect-[3/4]"><button class="favorite-btn absolute top-4 right-4 z-10 p-2 bg-black/30 rounded-full text-white ${isFavorited ? 'favorited' : ''}" data-mc-id="${mc.id}"><i data-lucide="heart" class="w-5 h-5 pointer-events-none"></i></button><img data-src="${mc.image}" src="https://placehold.co/300x400/1a112f/3d2c5c?text=..." alt="${mc.name}" class="lazyload w-full h-full object-cover"></div><div class="p-4"><div class="flex justify-between items-center"><h3 class="text-lg font-bold text-white truncate">${mc.name}</h3><span class="flex items-center text-sm font-bold text-yellow-400"><i data-lucide="star" class="w-4 h-4 fill-current mr-1"></i> ${mc.rating}</span></div><p class="text-sm text-primary-color truncate">${mc.category}</p></div></div>`; }
+    function createSliderCard(mc) { return `<div class="snap-start w-[calc(100%/2-0.75rem)] sm:w-[calc(100%/3-1rem)] md:w-[calc(100%/4-1rem)] lg:w-[calc(100%/5-1rem)] flex-shrink-0 mr-4">${createMcCard(mc)}</div>`; }
+    function createVenueSliderCard(venue) { return `<div class="snap-start w-[calc(100%/2-0.75rem)] sm:w-[calc(100%/3-1rem)] md:w-[calc(100%/4-1rem)] lg:w-[calc(100%/5-1rem)] flex-shrink-0 mr-4">${createVenueCard(venue)}</div>`; }
+    function createVenueCard(venue) { return `<div class="glass-card rounded-xl overflow-hidden group"><div class="relative aspect-video"><img data-src="${venue.image}" alt="${venue.name}" class="lazyload w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"></div><div class="p-4"><h3 class="text-lg font-bold text-white truncate">${venue.name}</h3><p class="text-sm text-gray-400 truncate">${venue.location}</p></div></div>`; }
+    function renderSlider(containerId, data, cardCreator) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = data.map(cardCreator).join('');
+    }
+    function initializeSlider(sliderId, containerId, prevId, nextId) {
+        const slider = document.getElementById(sliderId);
+        const container = document.getElementById(containerId);
+        const prevBtn = document.getElementById(prevId);
+        const nextBtn = document.getElementById(nextId);
+        if (!slider || !container || !prevBtn || !nextBtn) return;
+        nextBtn.addEventListener('click', () => container.scrollBy({ left: container.clientWidth, behavior: 'smooth' }));
+        prevBtn.addEventListener('click', () => container.scrollBy({ left: -container.clientWidth, behavior: 'smooth' }));
+        let isDown = false, startX, scrollLeft;
+        slider.addEventListener('mousedown', (e) => { isDown = true; slider.classList.add('active'); startX = e.pageX - slider.offsetLeft; scrollLeft = container.scrollLeft; });
+        slider.addEventListener('mouseleave', () => { isDown = false; slider.classList.remove('active'); });
+        slider.addEventListener('mouseup', () => { isDown = false; slider.classList.remove('active'); });
+        slider.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2; container.scrollLeft = scrollLeft - walk; });
+    }
+    function openModal(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => modal.classList.add('is-open'), 10); document.body.classList.add('modal-open'); }
+    function closeModal(modal) { modal.classList.remove('is-open'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); if (!document.querySelector('.modal-container.is-open')) { document.body.classList.remove('modal-open'); } }, 300); }
+    </script>
+</body>
+</html>
+
