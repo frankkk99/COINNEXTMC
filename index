@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIGHTOUT - แพลตฟอร์ม MC ระดับมืออาชีพ (Invite Only)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    
+    <!-- AOS (Animate on Scroll) -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script>
+    
+    <!-- LazySizes for Lazy Loading Images -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js" async></script>
+
+    <style>
+        :root {
+            --primary-color: #F000B8; /* Neon Pink */
+            --secondary-color: #00F0FF; /* Electric Blue */
+            --primary-glow: rgba(240, 0, 184, 0.5);
+            --secondary-glow: rgba(0, 240, 255, 0.4);
+            --bg-dark: #05020a;
+            --bg-medium: #100a1f;
+            --bg-light: #1a112f;
+            --border-color: #3d2c5c;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #E5E7EB;
+            overflow-x: hidden;
+        }
+        
+        body.modal-open { overflow: hidden; }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: linear-gradient(-45deg, #05020a, #100a1f, #05020a, #1a112f);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Inter', 'Sarabun', sans-serif;
+            font-weight: 700;
+        }
+
+        .highlight-text { color: var(--primary-color); }
+        .highlight-text-secondary { color: var(--secondary-color); }
+
+        .glass-card, .glass-modal {
+            background-color: rgba(26, 17, 47, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(61, 44, 92, 0.5);
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-image: linear-gradient(45deg, var(--primary-color) 0%, #ff33c8 50%, #d4009b 100%);
+            background-size: 200% auto;
+            color: #ffffff;
+            box-shadow: 0 4px 20px var(--primary-glow);
+        }
+        .btn-primary:hover {
+            background-position: right center;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+        .btn-outline {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .tilt-card {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            will-change: transform;
+            transform-style: preserve-3d;
+        }
+        .tilt-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3), 0 0 20px var(--primary-glow);
+            transform: perspective(1000px) rotateX(2deg) rotateY(4deg) scale3d(1.05, 1.05, 1.05);
+        }
+
+        .custom-select {
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            background-color: var(--bg-light); border: 1px solid var(--border-color); color: #E5E7EB;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23F000B8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+
+        /* Modal Styles */
+        .modal-container { transition: opacity 0.3s ease; }
+        .modal-content {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform: scale(0.95);
+            opacity: 0;
+        }
+        .modal-container.is-open .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .dropdown-modal {
+            transform-origin: top right;
+        }
+
+        /* Favorites & Notifications Styles */
+        .favorite-btn i { transition: transform 0.2s ease-out; }
+        .favorite-btn.favorited i {
+            fill: #ff4757; color: #ff4757;
+            animation: heart-pop 0.3s ease-out;
+        }
+        @keyframes heart-pop { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+        
+        #favorites-counter, #notifications-counter, #chat-counter {
+            display: flex; align-items: center; justify-content: center; line-height: 1;
+        }
+        #favorites-counter.hidden, #notifications-counter.hidden, #chat-counter.hidden { display: none; }
+
+        .notification-item.unread { background-color: rgba(240, 0, 184, 0.1); }
+        .notification-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+        
+        /* Lazy Loading Styles */
+        .lazyload, .lazyloading {
+            opacity: 0;
+        }
+        .lazyloaded {
+            opacity: 1;
+            transition: opacity 300ms;
+        }
+
+        /* Chat Popup */
+        #chat-modal {
+            transition: all 0.3s ease-in-out;
+            transform-origin: bottom right;
+        }
+        #chat-modal.hidden {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
+        .chat-unread-dot {
+            background-color: #3b82f6; /* blue-500 */
+        }
+        #chat-bubble-btn {
+            border: 2px solid var(--primary-color);
+            background-color: transparent;
+            color: var(--primary-color);
+        }
+        #chat-bubble-btn.active {
+             background-color: var(--primary-color);
+             color: white;
+        }
+        
+        /* For Hiding the Scrollbar */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Preloader Styles */
+        #preloader { background-color: var(--bg-dark); position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #preloader.start-exit {
+            transition: opacity 0.6s 1.8s, visibility 0.6s 1.8s;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #preloader-gate-top, #preloader-gate-bottom { background-color: #0c121c; position: absolute; left: 0; width: 100%; height: 50%; }
+        #preloader-gate-top { top: 0; }
+        #preloader-gate-bottom { bottom: 0; }
+        #preloader.start-exit #preloader-gate-top { animation: gate-open-top 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards; }
+        #preloader.start-exit #preloader-gate-bottom { animation: gate-open-bottom 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards; }
+        @keyframes gate-open-top { to { transform: translateY(-100%); } }
+        @keyframes gate-open-bottom { to { transform: translateY(100%); } }
+        
+        #preloader .logo-char {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(-100px);
+            animation: char-reveal 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        #preloader .logo-char:nth-child(1) { animation-delay: 0.1s; }
+        #preloader .logo-char:nth-child(2) { animation-delay: 0.2s; }
+        #preloader .logo-char:nth-child(3) { animation-delay: 0.3s; }
+        #preloader .logo-char:nth-child(4) { animation-delay: 0.4s; }
+        #preloader .logo-char:nth-child(5) { animation-delay: 0.5s; }
+        #preloader .highlight-text .logo-char:nth-child(1) { animation-delay: 0.6s; }
+        #preloader .highlight-text .logo-char:nth-child(2) { animation-delay: 0.7s; }
+        #preloader .highlight-text .logo-char:nth-child(3) { animation-delay: 0.8s; }
+
+        @keyframes char-reveal { to { opacity: 1; transform: translateY(0); } }
+        
+        #preloader .highlight-text {
+            animation: text-glow 2s infinite alternate;
+            animation-delay: 1s;
+        }
+        @keyframes text-glow {
+            from { text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow); }
+            to { text-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow); }
+        }
+
+        /* Timeline for "How it Works" */
+        .timeline-item {
+            position: relative;
+            padding-left: 2.5rem; /* 40px */
+            padding-bottom: 2rem; /* 32px */
+            border-left: 2px solid var(--border-color);
+        }
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
+            padding-bottom: 0;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -0.7rem; /* -11px */
+            top: 0;
+            width: 1.25rem; /* 20px */
+            height: 1.25rem; /* 20px */
+            border-radius: 9999px;
+            background-color: var(--bg-light);
+            border: 3px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .timeline-dot-inner {
+             width: 0.5rem; height: 0.5rem; background-color: var(--primary-color); border-radius: 9999px;
+        }
+
+        /* Admin Panel Styles */
+        #admin-panel {
+            transition: transform 0.3s ease-in-out;
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- PRELOADER -->
+    <div id="preloader">
+        <div id="preloader-gate-top"></div>
+        <div id="preloader-gate-bottom"></div>
+        <div class="relative text-5xl md:text-7xl font-bold text-white tracking-widest uppercase">
+            <span class="logo-char">N</span><span class="logo-char">I</span><span class="logo-char">G</span><span class="logo-char">H</span><span class="logo-char">T</span><span class="highlight-text"><span class="logo-char">O</span><span class="logo-char">U</span><span class="logo-char">T</span></span>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 glass-card">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="#" class="text-2xl font-bold text-white tracking-widest uppercase">NIGHT<span class="highlight-text">OUT</span></a>
+                <div id="main-nav" class="hidden md:flex items-center space-x-6 text-sm">
+                    <a href="#how-it-works" class="text-gray-300 hover:text-white transition">วิธีการทำงาน</a>
+                    <a href="#verified-mc" class="text-gray-300 hover:text-white transition">แพ็กเกจ Pro</a>
+                    <a href="#partner-venues" class="text-gray-300 hover:text-white transition">สถานบันเทิงแนะนำ</a>
+                </div>
+                <div id="auth-section-header" class="flex items-center gap-2">
+                     <button id="invite-code-btn" class="px-4 py-2 rounded-md text-sm font-medium btn btn-primary">ใช้รหัสเชิญ</button>
+                    <!-- Mobile Menu Button Placeholder -->
+                    <div class="md:hidden">
+                        <button class="text-white p-2">
+                            <i data-lucide="menu" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="user-section-header" class="hidden items-center gap-2">
+                    <!-- Icons Section -->
+                    <button id="favorites-btn" class="text-gray-300 hover:text-white transition-colors p-2 rounded-full hover:bg-gray-700 relative">
+                        <i data-lucide="heart" class="w-5 h-5"></i>
+                        <span id="favorites-counter" class="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-red-600 text-white text-xs font-bold ring-2 ring-gray-900 hidden">0</span>
+                    </button>
+                    <button id="notifications-btn" class="text-gray-300 hover:text-white transition-colors p-2 rounded-full hover:bg-gray-700 relative">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span id="notifications-counter" class="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-red-600 text-white text-xs font-bold ring-2 ring-gray-900 hidden">0</span>
+                    </button>
+                    <div class="w-px h-6 bg-gray-700 hidden sm:block mx-2"></div>
+                    <button id="logout-btn" class="px-4 py-2 rounded-md text-sm font-medium btn btn-outline">ออกจากระบบ</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="landing-page-content">
+        <!-- HERO -->
+        <section id="hero-section" class="relative text-center py-20 md:py-32 px-6 overflow-hidden">
+            <div class="absolute inset-0 bg-cover bg-center opacity-20 lazyload" data-bg="https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=1920"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-bg-dark via-bg-dark/80 to-transparent"></div>
+        
+            <div class="relative z-10 container mx-auto">
+                <div data-aos="fade-down">
+                    <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight uppercase tracking-wider">
+                        The Ultimate <span class="highlight-text">MC</span> Platform
+                    </h1>
+                    <p class="text-lg md:text-xl text-gray-300 mb-10 max-w-3xl mx-auto">
+                        แพลตฟอร์มส่วนตัวสำหรับค้นหาและจ้าง MC มืออาชีพที่ผ่านการคัดเลือกแล้วเท่านั้น (Invite Only)
+                    </p>
+                </div>
+        
+                <div data-aos="fade-up" data-aos-delay="200">
+                    <button id="hero-invite-code-btn" class="btn btn-primary font-semibold text-lg px-10 py-4 rounded-lg flex items-center justify-center gap-3 mx-auto">
+                        <i data-lucide="key-round" class="w-6 h-6"></i>
+                        กรอกรหัสเชิญเพื่อเข้าใช้งาน
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS -->
+        <section id="how-it-works" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 uppercase tracking-wide">ทำงานอย่างไร?</h2>
+                    <p class="text-gray-400 max-w-2xl mx-auto mt-4">ง่าย ปลอดภัย และเป็นส่วนตัวใน 4 ขั้นตอน</p>
+                </div>
+                <div class="max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="200">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                        <h3 class="text-xl font-bold text-white mb-2">1. ใช้รหัสเชิญ (Invite Code)</h3>
+                        <p class="text-gray-400">เข้าสู่แพลตฟอร์มด้วยรหัสเชิญส่วนตัว เพื่อรักษาความเป็นส่วนตัวและคุณภาพของคอมมูนิตี้</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                        <h3 class="text-xl font-bold text-white mb-2">2. ค้นหาและเลือก MC</h3>
+                        <p class="text-gray-400">ค้นหา MC ที่ตรงใจจากตัวกรองพื้นที่ใกล้เคียง, อายุ, สไตล์ และรีวิว จากนั้นเริ่มแชทเพื่อพูดคุยรายละเอียด</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                        <h3 class="text-xl font-bold text-white mb-2">3. เสนอราคาและชำระเงิน</h3>
+                        <p class="text-gray-400">ตกลงราคาผ่านระบบแชทและชำระเงินผ่านแพลตฟอร์มเพื่อความปลอดภัย เราจะเก็บเงินไว้จนกว่างานจะเสร็จสิ้น</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                        <h3 class="text-xl font-bold text-white mb-2">4. งานเสร็จสิ้นและรีวิว</h3>
+                        <p class="text-gray-400">เมื่อจบงาน กดยืนยันในระบบ MC จะได้รับเงิน และคุณสามารถให้คะแนนรีวิวเพื่อเป็นข้อมูลสำหรับคนอื่นต่อไป</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VERIFIED MC -->
+        <section id="verified-mc" class="py-20 bg-gray-900/50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 uppercase tracking-wide">สมัครเป็น <span class="highlight-text">Nightout Pro</span></h2>
+                    <p class="text-gray-400 max-w-3xl mx-auto">ยกระดับโปรไฟล์ MC ของคุณให้โดดเด่นและรับงานได้มากขึ้น</p>
+                </div>
+                <div class="max-w-lg mx-auto tilt-card rounded-xl p-8 shadow-lg text-center flex flex-col border-2 border-primary-color relative" data-aos="fade-up" data-aos-delay="200">
+                    <div class="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
+                        <span class="bg-primary-color text-white px-4 py-1 rounded-full text-sm font-semibold uppercase tracking-wider">Pro Package</span>
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="text-2xl font-bold mt-4">Pro MC</h3>
+                        <div class="my-6">
+                            <p class="text-4xl font-bold highlight-text">299<span class="text-lg font-normal"> บาท/เดือน</span></p>
+                            <p class="text-gray-400">หรือ 2,990 บาท/ปี (ประหยัด 2 เดือน)</p>
+                        </div>
+                        <ul class="text-gray-300 mt-6 text-left space-y-3">
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 text-primary-color mr-2 flex-shrink-0 mt-1"></i> <span>รับเครื่องหมาย <span class="font-bold text-primary-color">Pro Verified</span> บนโปรไฟล์</span></li>
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 text-primary-color mr-2 flex-shrink-0 mt-1"></i> <span>โปรไฟล์ถูกโปรโมทในอันดับต้นๆ ของการค้นหา</span></li>
+                            <li class="flex items-start"><i data-lucide="check" class="w-5 h-5 text-primary-color mr-2 flex-shrink-0 mt-1"></i> <span>เข้าถึงฟีเจอร์วิเคราะห์การเข้าชมโปรไฟล์</span></li>
+                        </ul>
+                    </div>
+                    <button class="mt-8 w-full btn btn-primary">สมัคร Pro</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PARTNER VENUES -->
+        <section id="partner-venues" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white uppercase tracking-wide">สถานบันเทิง<span class="highlight-text">แนะนำ</span></h2>
+                    <p class="text-gray-400 max-w-2xl mx-auto mt-4">ผู้ประกอบการสามารถลงทะเบียนร้านของคุณเพื่อให้ User ค้นหาและนัดหมาย MC ไปทำงานได้ง่ายขึ้น</p>
+                </div>
+                <div id="venues-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-aos="fade-up">
+                    <!-- Venue cards will be injected by JS -->
+                </div>
+                 <div class="text-center mt-12" data-aos="fade-up">
+                     <a href="#" class="btn btn-outline">ลงทะเบียนสถานบันเทิงของคุณ</a>
+                 </div>
+            </div>
+        </section>
+        
+        <!-- CTA -->
+        <section class="py-20 bg-gray-900/50">
+            <div class="container mx-auto px-6 text-center" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 uppercase tracking-wide">เข้าร่วม<span class="highlight-text">คอมมูนิตี้</span>ของเรา</h2>
+                <p class="text-gray-400 mb-8 max-w-2xl mx-auto">คุณมีรหัสเชิญแล้วหรือยัง? เข้าสู่แพลตฟอร์ม MC ที่ดีที่สุดได้เลย</p>
+                <div class="flex justify-center">
+                    <button id="footer-invite-code-btn" class="px-8 py-3 rounded-md font-semibold btn btn-primary text-lg">ใช้รหัสเชิญ</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MAIN APP CONTENT (HIDDEN BY DEFAULT) -->
+    <main id="app-view" class="hidden container mx-auto px-6 py-8">
+        <!-- Search and Filter Section -->
+        <div class="glass-card p-6 rounded-xl mb-8">
+            <h2 class="text-2xl font-bold text-white mb-4">ค้นหา MC</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
+                <div class="lg:col-span-2">
+                    <label for="filter-keyword" class="text-sm text-gray-400">คำค้นหา</label>
+                    <input id="filter-keyword" type="text" placeholder="พิมพ์ชื่อ MC..." class="w-full mt-1 bg-bg-light border border-border-color rounded-md py-2 px-3 focus:outline-none focus:border-primary-color transition text-white">
+                </div>
+                <div>
+                     <label for="filter-location" class="text-sm text-gray-400">พื้นที่</label>
+                    <select id="filter-location" class="custom-select w-full mt-1 rounded-md p-2.5 text-sm">
+                        <option value="">ทุกพื้นที่</option>
+                        <option value="ใกล้ฉัน">ใกล้ฉัน</option>
+                        <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+                        <option value="เชียงใหม่">เชียงใหม่</option>
+                        <option value="ภูเก็ต">ภูเก็ต</option>
+                    </select>
+                </div>
+                 <div>
+                     <label for="filter-age" class="text-sm text-gray-400">ช่วงอายุ</label>
+                    <select id="filter-age" class="custom-select w-full mt-1 rounded-md p-2.5 text-sm">
+                        <option value="">ทั้งหมด</option>
+                        <option value="18-24">18-24 ปี</option>
+                        <option value="25-30">25-30 ปี</option>
+                        <option value="31+">31 ปีขึ้นไป</option>
+                    </select>
+                </div>
+                 <div>
+                     <label for="filter-rating" class="text-sm text-gray-400">คะแนนรีวิว</label>
+                    <select id="filter-rating" class="custom-select w-full mt-1 rounded-md p-2.5 text-sm">
+                        <option value="">ทั้งหมด</option>
+                        <option value="4">4 ดาวขึ้นไป</option>
+                        <option value="3">3 ดาวขึ้นไป</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Grid -->
+        <div>
+            <p class="text-sm text-gray-400 mb-4">ผลลัพธ์: <span id="mc-results-count" class="highlight-text font-bold">0</span> รายการ</p>
+            <div id="mc-results-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- MC cards will be injected here -->
+            </div>
+            <div id="mc-no-results-message" class="text-center py-20 hidden h-full flex-col justify-center items-center">
+                <i data-lucide="search-x" class="w-16 h-16 mx-auto mb-4 text-gray-500"></i>
+                <h3 class="text-2xl font-bold text-white">ไม่พบ MC ที่ตรงเงื่อนไข</h3>
+                <p class="text-gray-400 mt-2">ลองปรับเปลี่ยนตัวกรองของคุณ</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-black/30 border-t border-gray-800">
+        <div class="container mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4 uppercase tracking-widest">NIGHT<span class="highlight-text">OUT</span></h3>
+                    <p class="text-gray-400 text-sm">แพลตฟอร์มส่วนตัวสำหรับ MC มืออาชีพ</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-4">สำรวจ</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#how-it-works" class="hover:text-white">วิธีการทำงาน</a></li>
+                        <li><a href="#verified-mc" class="hover:text-white">แพ็กเกจ Pro</a></li>
+                        <li><a href="#partner-venues" class="hover:text-white">สถานบันเทิง</a></li>
+                    </ul>
+                </div>
+                 <div>
+                    <h4 class="font-semibold text-white mb-4">เกี่ยวกับเรา</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white">เกี่ยวกับ NIGHTOUT</a></li>
+                        <li><a href="#" class="hover:text-white">คำถามที่พบบ่อย</a></li>
+                        <li><a href="#" class="hover:text-white">ติดต่อเรา</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-4">นโยบาย</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white">ข้อตกลงการใช้งาน</a></li>
+                        <li><a href="#" class="hover:text-white">นโยบายความเป็นส่วนตัว</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
+                <p>&copy; 2025 NIGHTOUT. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- ADMIN PANEL -->
+    <div id="admin-panel" class="fixed bottom-0 left-0 right-0 bg-secondary-color text-black p-4 shadow-lg transform translate-y-full z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+                <h3 class="font-bold text-lg">Admin Panel</h3>
+            </div>
+            <div class="flex gap-6 text-sm">
+                <span><strong>Users:</strong> <span id="admin-total-users">0</span></span>
+                <span><strong>Online:</strong> <span id="admin-online-users">0</span></span>
+                <span><strong>Revenue (Today):</strong> <span id="admin-revenue">฿0</span></span>
+            </div>
+            <button id="admin-manage-users-btn" class="bg-black/20 hover:bg-black/30 text-white font-bold py-2 px-4 rounded-lg text-sm">Manage Users</button>
+        </div>
+    </div>
+
+
+    <!-- MODALS & POPUPS CONTAINER -->
+    <div id="modals-container">
+        <!-- INVITE CODE MODAL -->
+        <div id="invite-code-modal" class="modal-container fixed inset-0 z-[60] p-4 hidden flex items-center justify-center">
+            <div class="modal-overlay absolute inset-0 bg-black/70"></div>
+            <div class="modal-content glass-modal rounded-xl w-full max-w-sm flex flex-col">
+                <button class="modal-close-btn absolute top-4 right-4 text-gray-400 hover:text-white z-20"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <div class="p-8 text-center">
+                    <i data-lucide="key-round" class="w-12 h-12 mx-auto mb-4 text-primary-color"></i>
+                    <h2 class="text-2xl font-bold text-white mb-2">กรอกรหัสเชิญ</h2>
+                    <p class="text-gray-400 mb-6">กรุณากรอกรหัสเชิญเพื่อเข้าใช้งาน</p>
+                    <form id="invite-code-form">
+                        <input id="invite-code-input" type="text" placeholder="XXXX-XXXX-XXXX" class="w-full text-center tracking-widest bg-bg-light border border-border-color rounded-md py-3 px-4 focus:outline-none focus:border-primary-color transition text-white text-lg">
+                        <p id="invite-code-error" class="text-red-500 text-sm mt-2 h-5"></p>
+                        <button type="submit" class="w-full mt-4 btn btn-primary font-semibold p-3 rounded-md">เข้าสู่ระบบ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAVORITES MODAL -->
+        <div id="favorites-modal" class="modal-container fixed inset-0 z-[60] p-4 hidden">
+            <div class="modal-overlay absolute inset-0 bg-black/70"></div>
+            <div class="modal-content dropdown-modal glass-modal rounded-xl w-full max-w-sm max-h-[calc(100vh-6rem)] flex flex-col absolute top-20 right-6">
+                <button class="modal-close-btn absolute top-4 right-4 text-gray-400 hover:text-white z-20"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <div class="p-6 text-center border-b border-gray-700">
+                    <h2 class="text-2xl font-bold text-white">รายการโปรด</h2>
+                </div>
+                <div class="p-4 flex-1 overflow-y-auto">
+                    <div id="favorites-list-container" class="space-y-4"></div>
+                    <div id="favorites-empty-message" class="text-center text-gray-400 py-10 hidden">
+                        <i data-lucide="heart-off" class="w-12 h-12 mx-auto mb-4 text-gray-500"></i>
+                        <p>ยังไม่มีรายการโปรด</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS MODAL -->
+        <div id="notifications-modal" class="modal-container fixed inset-0 z-[60] p-4 hidden">
+            <!-- ... modal content ... -->
+        </div>
+
+        <!-- CHAT POPUP -->
+        <div class="fixed bottom-6 right-6 z-40 hidden" id="chat-widget">
+            <button id="chat-bubble-btn" class="w-16 h-16 rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 relative">
+                <i data-lucide="message-square" class="w-8 h-8"></i>
+                <span id="chat-counter" class="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-red-600 text-white text-xs font-bold ring-2 ring-gray-900 hidden">0</span>
+            </button>
+            <div id="chat-modal" class="hidden glass-modal absolute bottom-20 right-0 w-80 h-[28rem] rounded-xl flex flex-col">
+                 <!-- Chat content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ========= APPLICATION STATE & DATA =========
+    const MC_DATA = [
+        { id: 'mc-1', name: 'MC Zonic', category: 'MC / Hypeman', image: 'https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=800', verifiedLevel: 'pro', location: 'กรุงเทพมหานคร', age: 28, rating: 4.9, stats: '36-24-36' },
+        { id: 'mc-2', name: 'MC Voice', category: 'MC (ภาษาอังกฤษ)', image: 'https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=800', verifiedLevel: 'pro', location: 'กรุงเทพมหานคร', age: 25, rating: 4.8, stats: '34-25-35' },
+        { id: 'mc-3', name: 'MC Namwan', category: 'MC / Entertainer', image: 'https://images.pexels.com/photos/5067699/pexels-photo-5067699.jpeg?auto=compress&cs=tinysrgb&w=800', verifiedLevel: null, location: 'เชียงใหม่', age: 22, rating: 4.5, stats: '33-24-34' },
+        { id: 'mc-4', name: 'MC Lookpat', category: 'MC สายสวย', image: 'https://images.pexels.com/photos/3769021/pexels-photo-3769021.jpeg?auto=compress&cs=tinysrgb&w=800', verifiedLevel: 'basic', location: 'ภูเก็ต', age: 26, rating: 4.7, stats: '35-25-36' },
+        { id: 'mc-5', name: 'MC Ploy', category: 'MC สายฮา', image: 'https://images.pexels.com/photos/3775541/pexels-photo-3775541.jpeg?auto=compress&cs=tinysrgb&w=800', verifiedLevel: null, location: 'กรุงเทพมหานคร', age: 30, rating: 4.6, stats: 'N/A' },
+        { id: 'mc-6', name: 'MC DoubleJ', category: 'MC คู่', image: 'https://images.pexels.com/photos/1153213/pexels-photo-1153213.jpeg?auto=compress&cs=tinysrgb&w=800', verifiedLevel: 'basic', location: 'เชียงใหม่', age: 27, rating: 4.9, stats: 'N/A' },
+    ];
+
+    const VENUE_DATA = [
+        { name: 'Route66 Club', location: 'RCA, Bangkok', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800' },
+        { name: 'Onyx Club', location: 'RCA, Bangkok', image: 'https://images.unsplash.com/photo-1563207904-92331a1a5948?q=80&w=800' },
+        { name: 'Warm Up Cafe', location: 'Nimman, Chiang Mai', image: 'https://images.unsplash.com/photo-1578736641334-42a7c98a58a6?q=80&w=800' },
+        { name: 'Cafe Del Mar', location: 'Kamala, Phuket', image: 'https://images.unsplash.com/photo-1571261361257-6078e6221c21?q=80&w=800' },
+    ];
+
+    let favorites = ['mc-2', 'mc-4']; 
+    let notifications = [ { id: 1, text: 'คุณได้รับข้อความใหม่จาก "MC Zonic"', unread: true } ];
+    const CHAT_DATA = [ { id: 1, name: 'MC Zonic', message: 'สวัสดีครับ สนใจรายละเอียดงานครับ', time: '5 นาที', unread: true, avatar: 'https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=100' }];
+
+    let currentUser = null; // 'user', 'mc', 'admin'
+
+    // ========= RENDER FUNCTIONS =========
+    function createMcCard(mc) {
+        let badge = '';
+        if (mc.verifiedLevel === 'pro') {
+            badge = `<span class="absolute top-4 left-4 bg-primary-color text-white px-3 py-1 rounded-full text-xs font-semibold z-10">Pro</span>`;
+        } else if (mc.verifiedLevel === 'basic') {
+            badge = `<span class="absolute top-4 left-4 bg-secondary-color text-black px-3 py-1 rounded-full text-xs font-semibold z-10">Verified</span>`;
+        }
+        const isFavorited = favorites.includes(mc.id);
+        return `
+            <div class="tilt-card rounded-xl overflow-hidden group" data-mc-id="${mc.id}">
+                <div class="relative aspect-[3/4]">
+                    ${badge}
+                    <button class="favorite-btn absolute top-4 right-4 z-10 p-2 bg-black/30 rounded-full text-white ${isFavorited ? 'favorited' : ''}">
+                        <i data-lucide="heart" class="w-5 h-5 pointer-events-none"></i>
+                    </button>
+                    <img data-src="${mc.image}" src="https://placehold.co/300x400/1a112f/3d2c5c?text=..." alt="${mc.name}" class="lazyload w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                </div>
+                <div class="p-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-white truncate">${mc.name}</h3>
+                        <span class="flex items-center text-sm font-bold text-yellow-400"><i data-lucide="star" class="w-4 h-4 fill-current mr-1"></i> ${mc.rating}</span>
+                    </div>
+                    <p class="text-sm text-primary-color truncate">${mc.category}</p>
+                    <p class="text-xs text-gray-400 mt-1 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> ${mc.location}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function createVenueCard(venue) {
+        return `
+            <div class="glass-card rounded-xl overflow-hidden group">
+                <div class="relative aspect-video">
+                    <img data-src="${venue.image}" alt="${venue.name}" class="lazyload w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                </div>
+                <div class="p-4">
+                     <h3 class="text-lg font-bold text-white truncate">${venue.name}</h3>
+                     <p class="text-sm text-gray-400 truncate">${venue.location}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    // Other render functions (favorite, notification, chat) would be here...
+
+    // ========= UI UPDATE & APP STATE MANAGEMENT =========
+    function setUIForLoggedInState(userType) {
+        currentUser = userType;
+        document.getElementById('landing-page-content').classList.add('hidden');
+        document.getElementById('app-view').classList.remove('hidden');
+        
+        document.getElementById('auth-section-header').classList.add('hidden');
+        document.getElementById('user-section-header').classList.remove('hidden');
+        document.getElementById('user-section-header').classList.add('flex');
+        document.getElementById('chat-widget').classList.remove('hidden');
+
+        if(userType === 'admin') {
+            document.getElementById('admin-panel').classList.remove('translate-y-full');
+            updateAdminPanel();
+        }
+        
+        // Initial render of MCs
+        applyFiltersAndRender();
+        updateCounters();
+    }
+    
+    function setUIForLoggedOutState() {
+        currentUser = null;
+        document.getElementById('landing-page-content').classList.remove('hidden');
+        document.getElementById('app-view').classList.add('hidden');
+
+        document.getElementById('auth-section-header').classList.remove('hidden');
+        document.getElementById('user-section-header').classList.add('hidden');
+        document.getElementById('user-section-header').classList.remove('flex');
+        document.getElementById('chat-widget').classList.add('hidden');
+        document.getElementById('admin-panel').classList.add('translate-y-full');
+    }
+
+    function updateAdminPanel() {
+        document.getElementById('admin-total-users').textContent = '1,100'; // Dummy data
+        document.getElementById('admin-online-users').textContent = '150'; // Dummy data
+        document.getElementById('admin-revenue').textContent = '฿15,500'; // Dummy data
+    }
+    
+    // ... other UI update functions
+    
+    // ========= MAIN APP LOGIC =========
+    function applyFiltersAndRender() {
+        // This function now filters MC_DATA and renders into #mc-results-grid
+        const grid = document.getElementById('mc-results-grid');
+        const countEl = document.getElementById('mc-results-count');
+        const noResultsEl = document.getElementById('mc-no-results-message');
+        
+        // Filter logic (can be expanded)
+        const keyword = document.getElementById('filter-keyword').value.toLowerCase();
+        const filtered = MC_DATA.filter(mc => mc.name.toLowerCase().includes(keyword));
+
+        countEl.textContent = filtered.length;
+        if (filtered.length > 0) {
+            grid.innerHTML = filtered.map(createMcCard).join('');
+            noResultsEl.classList.add('hidden');
+        } else {
+            grid.innerHTML = '';
+            noResultsEl.classList.remove('hidden');
+        }
+        lucide.createIcons();
+    }
+
+
+    // ========= INITIALIZATION =========
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Preloader ---
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+            window.onload = () => {
+                preloader.classList.add('start-exit');
+                preloader.addEventListener('transitionend', () => preloader.style.display = 'none', { once: true });
+            };
+        }
+
+        // --- Selectors ---
+        const inviteCodeModal = document.getElementById('invite-code-modal');
+        const inviteCodeForm = document.getElementById('invite-code-form');
+        const inviteCodeInput = document.getElementById('invite-code-input');
+        const inviteCodeError = document.getElementById('invite-code-error');
+
+        // --- Render initial landing page content ---
+        document.getElementById('venues-grid').innerHTML = VENUE_DATA.map(createVenueCard).join('');
+
+        // --- Event Listeners ---
+        document.getElementById('invite-code-btn').addEventListener('click', () => openModal(inviteCodeModal));
+        document.getElementById('hero-invite-code-btn').addEventListener('click', () => openModal(inviteCodeModal));
+        document.getElementById('footer-invite-code-btn').addEventListener('click', () => openModal(inviteCodeModal));
+
+        inviteCodeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const code = inviteCodeInput.value.trim().toUpperCase();
+            inviteCodeError.textContent = '';
+            
+            // --- SIMULATED LOGIN LOGIC ---
+            if (code === 'USER-1234') {
+                closeModal(inviteCodeModal);
+                setUIForLoggedInState('user');
+            } else if (code === 'MC-5678') {
+                closeModal(inviteCodeModal);
+                setUIForLoggedInState('mc');
+            } else if (code === 'ADMIN-SUPER') {
+                closeModal(inviteCodeModal);
+                setUIForLoggedInState('admin');
+            } else {
+                inviteCodeError.textContent = 'รหัสเชิญไม่ถูกต้อง';
+            }
+        });
+        
+        document.getElementById('logout-btn').addEventListener('click', () => {
+             setUIForLoggedOutState();
+        });
+
+        document.querySelectorAll('.modal-close-btn, .modal-overlay').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const modal = e.target.closest('.modal-container');
+                if(modal) closeModal(modal);
+            });
+        });
+        
+        // Filter event listeners for the app view
+        document.getElementById('filter-keyword').addEventListener('input', applyFiltersAndRender);
+        document.getElementById('filter-location').addEventListener('change', applyFiltersAndRender);
+        document.getElementById('filter-age').addEventListener('change', applyFiltersAndRender);
+        document.getElementById('filter-rating').addEventListener('change', applyFiltersAndRender);
+
+
+        // --- Initialize libraries ---
+        setTimeout(() => {
+            if (typeof AOS !== 'undefined') {
+                AOS.init({ duration: 800, once: true, offset: 50 });
+            }
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 100);
+    });
+
+    // Dummy functions for modal, counters etc. Should be replaced with full versions.
+    function openModal(modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => modal.classList.add('is-open'), 10);
+        document.body.classList.add('modal-open');
+    }
+    function closeModal(modal) {
+        modal.classList.remove('is-open');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (!document.querySelector('.modal-container.is-open')) {
+                document.body.classList.remove('modal-open');
+            }
+        }, 300);
+    }
+    function updateCounters() { /* ... */ }
+
+    </script>
+</body>
+</html>
+
